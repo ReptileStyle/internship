@@ -1,4 +1,4 @@
-package com.kuzevanov.filemanager.fileSystem.fileSystemImpl
+package com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils
 
 import android.content.ContentResolver
 import android.database.Cursor

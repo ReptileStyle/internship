@@ -1,6 +1,5 @@
 package com.kuzevanov.filemanager.navigation
 
-import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -10,8 +9,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.kuzevanov.filemanager.fileSystem.filenavigation.Location
-import com.kuzevanov.filemanager.fileSystem.filenavigation.LocationType
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreen
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreenViewModel
@@ -28,27 +25,19 @@ fun SetupNavGraph(
         navController = navHostController,
         startDestination = Route.home
     ) {
-        val defaultLocation = Location(
-            path = Environment.getExternalStorageDirectory().absolutePath
-        )
-        Log.d("nav",defaultLocation.path)
+        val defaultLocation = Environment.getExternalStorageDirectory().absolutePath
         composable(
             route = "dir?location={location}",
             arguments = listOf(
                 navArgument("location"){
-                    this.type= LocationType()
                     this.defaultValue = defaultLocation
                 }
             )
         ) {
             val viewModel: DirectoryScreenViewModel = hiltViewModel()
             LaunchedEffect(key1 = true){
-                var location: Location = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-                    it.arguments!!.getParcelable("location", Location::class.java)!!
-                }else{
-                    it.arguments!!.getParcelable<Location>("location")!!
-                }
-                viewModel.path=location.path
+                var location =it.arguments?.getString("location") ?: defaultLocation
+                viewModel.path=location
                 Log.d("nav",viewModel.path)
             }
             DirectoryScreen(

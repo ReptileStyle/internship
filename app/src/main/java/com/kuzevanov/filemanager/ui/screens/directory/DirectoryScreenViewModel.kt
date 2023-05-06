@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
-import com.kuzevanov.filemanager.fileSystem.fileSystemImpl.LocalFileSystem
+import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.model.DirectoryEntry
 import com.kuzevanov.filemanager.fileSystem.model.DirectoryInfo
 import com.kuzevanov.filemanager.ui.common.model.SortingMode

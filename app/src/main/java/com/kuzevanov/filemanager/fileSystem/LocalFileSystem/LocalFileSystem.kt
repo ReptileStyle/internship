@@ -1,8 +1,11 @@
-package com.kuzevanov.filemanager.fileSystem.fileSystemImpl
+package com.kuzevanov.filemanager.fileSystem.LocalFileSystem
 
 import android.content.Context
 import com.kuzevanov.filemanager.fileSystem.FileSystem
 import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.MD5
+import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.MediaFinderHelper
+import com.kuzevanov.filemanager.fileSystem.model.Hashcode
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -53,5 +56,10 @@ class LocalFileSystemEntry(override val fileSystem: FileSystem, private val java
         return LocalFileSystemEntry(fileSystem, javaFile.parentFile ?: return null)
     }
 
+    override val isModified: Boolean
+        get() = false//implement after db
 
+    override fun getHashcode(): Hashcode {
+        return Hashcode(path=path, hashcode = MD5.calculateMD5(javaFile))
+    }
 }

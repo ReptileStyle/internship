@@ -8,7 +8,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
-import com.kuzevanov.filemanager.fileSystem.fileSystemImpl.LocalFileSystem
+import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component.model.DataModel
 import dagger.hilt.android.lifecycle.HiltViewModel

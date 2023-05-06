@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
-import com.kuzevanov.filemanager.fileSystem.fileSystemImpl.LocalFileSystem
+import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.navigation.Route
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
