@@ -92,4 +92,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-parcelize-runtime:1.6.21"
 
     implementation("io.coil-kt:coil-compose:2.3.0")
+
+    //for dropdown menu
+    implementation "com.github.adriankuta:tree-structure:3.0.1"
 }

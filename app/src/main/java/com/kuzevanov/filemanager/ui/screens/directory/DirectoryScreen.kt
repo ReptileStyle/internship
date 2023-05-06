@@ -2,16 +2,13 @@ package com.kuzevanov.filemanager.ui.screens.directory
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -21,9 +18,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuzevanov.filemanager.core.UiEvent
+import com.kuzevanov.filemanager.ui.common.TreeDropDownMenu
+import com.kuzevanov.filemanager.ui.screens.directory.component.DropdownMenuTree
 import com.kuzevanov.filemanager.ui.screens.directory.component.FileComponent
 import kotlinx.coroutines.flow.Flow
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun DirectoryScreen(
     state: DirectoryScreenState,
@@ -33,16 +33,16 @@ fun DirectoryScreen(
     onNavigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
-    LaunchedEffect(key1 = true){
-        eventFlow.collect{event->
-            when(event){
-                is UiEvent.Message ->{
-                    Toast.makeText(context,event.message,Toast.LENGTH_LONG).show()
+    LaunchedEffect(key1 = true) {
+        eventFlow.collect { event ->
+            when (event) {
+                is UiEvent.Message -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
                 }
-                is UiEvent.Navigate->{
-                    onNavigate(event.route,event.popBackStack)
+                is UiEvent.Navigate -> {
+                    onNavigate(event.route, event.popBackStack)
                 }
-                is UiEvent.NavigateUp->{
+                is UiEvent.NavigateUp -> {
                     onNavigateUp()
                 }
             }
@@ -61,7 +61,7 @@ fun DirectoryScreen(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colors.onSurface,
-                        style =  TextStyle(
+                        style = TextStyle(
                             fontFamily = FontFamily.Default,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
@@ -78,23 +78,26 @@ fun DirectoryScreen(
                             contentDescription = "return to previous directory"
                         )
                     }
+                },
+                actions = {
+                    TreeDropDownMenu(
+                        tree = DropdownMenuTree,
+                        onEvent = { onEvent(DirectoryScreenEvent.OnDropdownMenuItemClick(it)) })
                 }
             )
         }
     ) {
-        LazyColumn(modifier = Modifier.padding(it)){
-            items(state.files){file->
+        LazyColumn(modifier = Modifier.padding(it)) {
+            items(state.files) { file ->
                 FileComponent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     file = file,
-                    onClick = {onEvent(DirectoryScreenEvent.OnFileClick(file))}
+                    onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) }
                 )
             }
         }
     }
-
-
 }
 
