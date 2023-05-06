@@ -49,10 +49,12 @@ class DirectoryScreenViewModel @Inject constructor(
             }
             is DirectoryScreenEvent.OnBackButtonPress ->{
                 val parent = state.directory?.getParent()
-                if(parent != null){
+                if(parent?.path!="/storage/emulated" && parent!=null){
                     path = parent.path
                 }else{
-                    //todo return to home screen
+                    viewModelScope.launch {
+                        _uiEvent.send(UiEvent.NavigateUp)
+                    }
                 }
             }
         }

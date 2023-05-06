@@ -3,14 +3,26 @@ package com.kuzevanov.filemanager.utils
 import android.webkit.MimeTypeMap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.kuzevanov.filemanager.fileSystem.model.DirectoryEntry
+import androidx.compose.ui.res.vectorResource
 
-val DirectoryEntry.iconInfo: Pair<ImageVector, String> get() {
+import com.kuzevanov.filemanager.R
+import com.kuzevanov.filemanager.fileSystem.model.DirectoryEntry
+@Composable
+fun DirectoryEntry.iconInfo(): Pair<ImageVector, String> {
     return if (this.isDirectory) { // Folders
         Icons.Filled.Folder to "Folder"
     } else { // Otherwise, check the mime type
-        mimeTypeIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)] ?: (Icons.Filled.QuestionMark to "Unknown") // If an unrecognized mime type, resort to "Unknown"
+        mimeTypeIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)]
+            ?: mimeTypeCustomIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)].let{
+                if(it!=null){
+                    Pair(ImageVector.vectorResource(id = it.first),it.second)
+                }else{
+                    null
+                }
+            }
+            ?: (Icons.Filled.QuestionMark to "Unknown") // If an unrecognized mime type, resort to "Unknown"
     }
 }
 
@@ -41,8 +53,34 @@ private val mimeTypeIconMap = mapOf(
     "text/javascript" to (Icons.Filled.Javascript to "Javascript"),
     "application/json" to (Icons.Filled.Code to "JSON"),
     "application/ld+json" to (Icons.Filled.Code to "JSON+LD"),
+    //word
+    "application/msword" to (Icons.Filled.Description to "Word document"),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document" to (Icons.Filled.Description to "Word document"),
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.template" to (Icons.Filled.Description to "Word document"),
+    "application/vnd.ms-word.document.macroEnabled.12" to (Icons.Filled.Description to "Word document"),
+    "application/vnd.ms-word.template.macroEnabled.12" to (Icons.Filled.Description to "Word document"),
+    //excel
+    "application/vnd.ms-excel" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.template" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.ms-excel.sheet.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.ms-excel.template.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.ms-excel.addin.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
+    "application/vnd.ms-excel.sheet.binary.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
+
+
     // Other
     "application/pgp-keys" to (Icons.Filled.Key to "PGP Keys"),
     "application/x-msdos-program" to (Icons.Filled.DesktopWindows to "Windows exe"),
     "application/x-apple-diskimage" to (Icons.Filled.InstallDesktop to "Mac installer")
+)
+
+private val mimeTypeCustomIconMap = mapOf( //icon is too big
+    "application/vnd.ms-excel" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.template" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.ms-excel.sheet.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.ms-excel.template.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.ms-excel.addin.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
+    "application/vnd.ms-excel.sheet.binary.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
 )

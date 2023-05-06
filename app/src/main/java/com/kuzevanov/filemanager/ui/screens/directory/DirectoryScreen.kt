@@ -2,13 +2,14 @@ package com.kuzevanov.filemanager.ui.screens.directory
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -47,7 +48,7 @@ fun DirectoryScreen(
             }
         }
     }
-    BackHandler(enabled = state.directory?.getParent()!=null) {
+    BackHandler(enabled = true) {
         onEvent(DirectoryScreenEvent.OnBackButtonPress)
     }
     Scaffold(
@@ -56,7 +57,7 @@ fun DirectoryScreen(
                 title = {
                     Text(
                         state.directory?.name ?: "Error directory",
-                        fontSize = 50.sp,
+                        fontSize = 24.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colors.onSurface,
@@ -64,12 +65,19 @@ fun DirectoryScreen(
                             fontFamily = FontFamily.Default,
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,
-                            lineHeight = 24.sp,
                             letterSpacing = 0.5.sp
                         ),
                         modifier = Modifier
                             .padding(8.dp)
                     )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { onEvent(DirectoryScreenEvent.OnBackButtonPress) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "return to previous directory"
+                        )
+                    }
                 }
             )
         }
@@ -77,6 +85,9 @@ fun DirectoryScreen(
         LazyColumn(modifier = Modifier.padding(it)){
             items(state.files){file->
                 FileComponent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     file = file,
                     onClick = {onEvent(DirectoryScreenEvent.OnFileClick(file))}
                 )

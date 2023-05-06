@@ -9,5 +9,7 @@ data class DirectoryEntry(val fileSystemEntry: FileSystemEntry, val name: String
     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
     val isDirectory = fileSystemEntry.isDirectory
     val lastModified = fileSystemEntry.lastModified
+    val size = fileSystemEntry.size
+    val countChildren = fileSystemEntry.countChildren
     fun delete(recursive: Boolean = false) = fileSystemEntry.delete(recursive)
 }

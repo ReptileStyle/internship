@@ -10,39 +10,42 @@ import javax.inject.Inject
 
 class LocalFileSystem @Inject constructor(
     @ApplicationContext
-    val context:Context) : FileSystem() {
+    val context: Context
+) : FileSystem() {
     override fun getEntry(path: String) = LocalFileSystemEntry(this, File(path))
 
-    fun getAllByType(type: SpecialFolderTypes)=MediaFinderHelper(context.contentResolver).getAllByType(type)
+    fun getAllByType(type: SpecialFolderTypes) =
+        MediaFinderHelper(context.contentResolver).getAllByType(type)
+
     override fun load() = Unit
 }
 
-class LocalFileSystemEntry(override val fileSystem: FileSystem, private val javaFile: File) : FileSystemEntry() {
+class LocalFileSystemEntry(override val fileSystem: FileSystem, private val javaFile: File) :
+    FileSystemEntry() {
     override val path: String = javaFile.absolutePath
     override val name: String = javaFile.name
     override val extension: String = javaFile.extension
     override val lastModified: Long = javaFile.lastModified()
     override val isDirectory: Boolean = javaFile.isDirectory
+    override val size: Long = javaFile.length()
+    override val countChildren: Int
+        get() =
+            if (isDirectory)
+                javaFile.listFiles()?.size ?: 0
+            else
+                0
+
+
     override fun readBytes(): ByteArray = javaFile.readBytes()
     override fun writeBytes(data: ByteArray): Boolean {
         javaFile.writeBytes(data)
         return true
     }
 
-    override fun delete(recursive: Boolean): Boolean = if (recursive) javaFile.deleteRecursively() else javaFile.delete()
+    override fun delete(recursive: Boolean): Boolean =
+        if (recursive) javaFile.deleteRecursively() else javaFile.delete()
 
-    override fun listFiles(): List<LocalFileSystemEntry>?{
-//        val uri = MediaStore .Files.getContentUri(path)
-//
-//
-//        Log.d("files",this.path)
-//        Log.d("files",javaFile.exists().toString())
-//        Log.d("files",javaFile.isDirectory.toString())
-//        try {
-//            javaFile.listFiles()
-//        }catch (e:Exception){
-//            Log.d("files",e.toString())
-//        }
+    override fun listFiles(): List<LocalFileSystemEntry>? {
         return javaFile.listFiles()?.map { LocalFileSystemEntry(fileSystem, it) }
     }
 
