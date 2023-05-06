@@ -1,6 +1,5 @@
 package com.kuzevanov.filemanager.ui.screens.home.component
 
-import android.text.format.Formatter
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +23,7 @@ import com.kuzevanov.filemanager.ui.screens.home.HomeScreenState
 import com.kuzevanov.filemanager.ui.theme.DeviceStorageColor
 import com.kuzevanov.filemanager.ui.theme.DropboxColor
 import com.kuzevanov.filemanager.ui.theme.GoogleDriveColor
+import com.kuzevanov.filemanager.utils.byteFormatter
 
 @Composable
 fun UserStorageCards(
@@ -109,11 +108,7 @@ private fun storageTitleFor(dataProvider: StorageDataProvider): String {
     }
 }
 
-@Composable
-private fun byteFormatter(bytes: Long): String {
-    val context = LocalContext.current
-    return Formatter.formatShortFileSize(context, bytes)
-}
+
 
 @Composable
 private fun colorFor(dataProvider: StorageDataProvider, onColor: Color): Color {

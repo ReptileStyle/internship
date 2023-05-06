@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.kuzevanov.filemanager.R
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreenEvent
-import com.kuzevanov.filemanager.ui.screens.home.component.util.SpecialFolders
+import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import kotlin.math.roundToInt
 
 @Composable
@@ -38,14 +38,14 @@ fun UserCommonDataTypeTiles(
     val add = stringResource(R.string.add)
     val tiles = remember {
         listOf(
-            ResourceTile(images, Icons.Rounded.Image, Color(0xFF673AB7), SpecialFolders.Images),
-            ResourceTile(videos, Icons.Rounded.VideoLibrary, Color(0xFFF44336), SpecialFolders.Videos),
-            ResourceTile(music, Icons.Rounded.LibraryMusic, Color(0xFFFF9800), SpecialFolders.Music),
-            ResourceTile(apps, Icons.Rounded.Apps, Color(0xFF03A9F4), SpecialFolders.Apps),
-            ResourceTile(zipFiles, Icons.Rounded.Archive, Color(0xFF838383), SpecialFolders.Zip),
-            ResourceTile(documents, Icons.Rounded.ListAlt, Color(0xFF1C70B3), SpecialFolders.Docs),
-            ResourceTile(downloads, Icons.Rounded.Download, Color(0xFF009688), SpecialFolders.Downloads),
-            ResourceTile(add, Icons.Rounded.Add, Color(0xFF03A9F4), SpecialFolders.AddNew),
+            ResourceTile(images, Icons.Rounded.Image, Color(0xFF673AB7), SpecialFolderTypes.Images),
+            ResourceTile(videos, Icons.Rounded.VideoLibrary, Color(0xFFF44336), SpecialFolderTypes.Videos),
+            ResourceTile(music, Icons.Rounded.LibraryMusic, Color(0xFFFF9800), SpecialFolderTypes.Music),
+            ResourceTile(apps, Icons.Rounded.Apps, Color(0xFF03A9F4), SpecialFolderTypes.Apps),
+            ResourceTile(zipFiles, Icons.Rounded.Archive, Color(0xFF838383), SpecialFolderTypes.Zip),
+            ResourceTile(documents, Icons.Rounded.ListAlt, Color(0xFF1C70B3), SpecialFolderTypes.Docs),
+            ResourceTile(downloads, Icons.Rounded.Download, Color(0xFF009688), SpecialFolderTypes.Downloads),
+            ResourceTile(add, Icons.Rounded.Add, Color(0xFF03A9F4), SpecialFolderTypes.AddNew),
         ).chunked(4)
     }
 

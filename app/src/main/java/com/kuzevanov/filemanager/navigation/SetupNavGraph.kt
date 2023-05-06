@@ -12,6 +12,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.kuzevanov.filemanager.fileSystem.filenavigation.Location
 import com.kuzevanov.filemanager.fileSystem.filenavigation.LocationType
+import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreen
+import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreenViewModel
 import com.kuzevanov.filemanager.ui.screens.directory.DirectoryScreen
 import com.kuzevanov.filemanager.ui.screens.directory.DirectoryScreenViewModel
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreen
@@ -59,6 +62,27 @@ fun SetupNavGraph(
         composable(route = Route.home){
             val viewModel:HomeScreenViewModel = hiltViewModel()
             HomeScreen(
+                state = viewModel.state,
+                onEvent = viewModel::onEvent,
+                onNavigate = navHostController::navigate,
+                eventFlow = viewModel.uiEvent,
+                onNavigateUp = navHostController::navigateUp,
+            )
+        }
+        composable(
+            route="type?contentType={contentType}",
+            arguments = listOf(
+                navArgument("contentType"){
+                    this.defaultValue = 0
+                }
+            )
+        ){
+            val viewModel:ContentTypeScreenViewModel = hiltViewModel()
+            LaunchedEffect(key1 = true){
+                val typeNumber = it.arguments!!.getInt("contentType")
+                viewModel.type = SpecialFolderTypes.getTypeFromInt(typeNumber)
+            }
+            ContentTypeScreen(
                 state = viewModel.state,
                 onEvent = viewModel::onEvent,
                 onNavigate = navHostController::navigate,

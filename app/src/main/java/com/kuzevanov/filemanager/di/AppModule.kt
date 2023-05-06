@@ -1,5 +1,6 @@
 package com.kuzevanov.filemanager.di
 
+import android.content.ContentResolver
 import android.content.Context
 import com.kuzevanov.filemanager.fileSystem.fileSystemImpl.LocalFileSystem
 import dagger.Module
@@ -18,4 +19,10 @@ object AppModule {
         @ApplicationContext
         context:Context
     ):LocalFileSystem = LocalFileSystem(context)
+
+    @Provides
+    fun provideContentResolver(
+        @ApplicationContext
+        context:Context
+    ):ContentResolver = context.contentResolver
 }

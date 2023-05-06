@@ -1,10 +1,9 @@
 package com.kuzevanov.filemanager.fileSystem.fileSystemImpl
 
 import android.content.Context
-import android.provider.MediaStore
-import android.util.Log
 import com.kuzevanov.filemanager.fileSystem.FileSystem
 import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
@@ -13,6 +12,8 @@ class LocalFileSystem @Inject constructor(
     @ApplicationContext
     val context:Context) : FileSystem() {
     override fun getEntry(path: String) = LocalFileSystemEntry(this, File(path))
+
+    fun getAllByType(type: SpecialFolderTypes)=MediaFinderHelper(context.contentResolver).getAllByType(type)
     override fun load() = Unit
 }
 

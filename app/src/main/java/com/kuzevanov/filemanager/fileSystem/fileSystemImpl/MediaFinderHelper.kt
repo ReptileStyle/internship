@@ -1,4 +1,4 @@
-package com.kuzevanov.filemanager.ui.screens.home.component.util
+package com.kuzevanov.filemanager.fileSystem.fileSystemImpl
 
 import android.content.ContentResolver
 import android.database.Cursor
@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.net.toUri
+import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 
 
 class MediaFinderHelper(
@@ -14,23 +15,22 @@ class MediaFinderHelper(
 ) {
 
     fun getAllByType(
-        type: Int
-    ): ArrayList<String?> {
+        type: SpecialFolderTypes
+    ): ArrayList<String> {
         val videoItemHashSet: HashSet<String> = HashSet()
         val projection = when (type) {
-            SpecialFolders.Videos -> arrayOf(
+            SpecialFolderTypes.Videos -> arrayOf(
                 MediaStore.Video.VideoColumns.DATA,
                 MediaStore.Video.Media.DISPLAY_NAME
             )
-            SpecialFolders.Images -> arrayOf(
-                MediaStore.Images.ImageColumns.DATA,
-                MediaStore.Images.Media.DISPLAY_NAME
+            SpecialFolderTypes.Images -> arrayOf(
+                MediaStore.Images.ImageColumns.DATA
             )
-            SpecialFolders.Music -> arrayOf(
+            SpecialFolderTypes.Music -> arrayOf(
                 MediaStore.Audio.AudioColumns.DATA,
                 MediaStore.Audio.Media.DISPLAY_NAME
             )
-            SpecialFolders.Downloads -> arrayOf(
+            SpecialFolderTypes.Downloads -> arrayOf(
                 MediaStore.DownloadColumns.DATA,
                 MediaStore.Downloads.DISPLAY_NAME
             )
@@ -39,10 +39,10 @@ class MediaFinderHelper(
             }
         }
         val uri: Uri = when (type) {
-            SpecialFolders.Videos -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            SpecialFolders.Images -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            SpecialFolders.Music -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-            SpecialFolders.Downloads -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            SpecialFolderTypes.Videos -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            SpecialFolderTypes.Images -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            SpecialFolderTypes.Music -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            SpecialFolderTypes.Downloads -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI
             } else {
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toUri()
