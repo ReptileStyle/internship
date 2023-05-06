@@ -18,6 +18,6 @@ interface HashcodeDAO {
     @Query("SELECT * FROM hashcode WHERE path = :path")
     fun getHashCode(path: String): Flow<Hashcode>
 
-    @Query("SELECT * FROM hashcode WHERE path LIKE ':path%'")
+    @Query("SELECT * FROM hashcode WHERE path LIKE :path || '%'")
     fun getAllHashCodesInDir(path:String): Flow<List<Hashcode>>
 }
