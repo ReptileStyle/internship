@@ -21,7 +21,6 @@ abstract class FileSystemEntry {
     abstract fun getHashcode():Hashcode
 
     abstract fun open()
-    abstract fun share()
 
 //    abstract suspend fun isModified():Boolean
 }

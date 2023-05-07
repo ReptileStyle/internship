@@ -2,13 +2,19 @@ package com.kuzevanov.filemanager.ui.screens.directory
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -85,6 +91,27 @@ fun DirectoryScreen(
                         onEvent = { onEvent(DirectoryScreenEvent.OnDropdownMenuItemClick(it)) })
                 }
             )
+        },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = state.selectedFiles.isNotEmpty(),
+                enter = expandVertically(expandFrom = Alignment.Bottom),
+                exit = shrinkVertically(shrinkTowards = Alignment.Bottom)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colors.background)
+                        .height(50.dp), horizontalArrangement = Arrangement.Center
+                ) {
+                    IconButton(onClick = { onEvent(DirectoryScreenEvent.OnShareSelectedFilesClick) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Share selected files"
+                        )
+                    }
+                }
+            }
         }
     ) {
         LazyColumn(modifier = Modifier.padding(it)) {
@@ -94,7 +121,10 @@ fun DirectoryScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     file = file,
-                    onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) }
+                    onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) },
+                    onLongClick = { onEvent(DirectoryScreenEvent.OnSelectFile(file)) },
+                    isSelected = rememberUpdatedState(newValue = state.selectedFiles.contains(file)).value,
+                    isCheckboxVisible = state.selectedFiles.isNotEmpty()
                 )
             }
         }

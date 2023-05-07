@@ -1,11 +1,13 @@
 package com.kuzevanov.filemanager.ui.screens.directory.component
 
-import android.os.Environment
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,17 +22,22 @@ import com.kuzevanov.filemanager.utils.getDate
 import com.kuzevanov.filemanager.utils.iconInfo
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FileComponent(
     modifier: Modifier = Modifier,
     file:DirectoryEntry,
-    onClick:()->Unit
+    onClick:()->Unit,
+    onLongClick:()->Unit,
+    isSelected:Boolean,
+    isCheckboxVisible:Boolean
 ) {
     Row(modifier = modifier
         .padding(vertical = 4.dp, horizontal = 10.dp)
-        .clickable {
-            onClick()
-        }) {
+        .combinedClickable(
+            onClick = if (isCheckboxVisible) onLongClick else onClick,
+            onLongClick = onLongClick
+        )) {
         Box(contentAlignment = Alignment.Center) {
             var isModifiedState by remember { mutableStateOf(false) }
             LaunchedEffect(key1 = file) {
@@ -60,7 +67,9 @@ fun FileComponent(
         Spacer(modifier = Modifier.width(12.dp))
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxHeight()
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
         ) {
             androidx.compose.material.Text(
                 text = file.name,
@@ -89,6 +98,28 @@ fun FileComponent(
                 )
             )
         }
+
+        AnimatedVisibility(
+            visible = isCheckboxVisible,
+            enter = fadeIn()+ scaleIn(),
+            exit = fadeOut()+ scaleOut()
+        ) {
+            Box(modifier = Modifier
+                .fillMaxHeight()
+                .width(50.dp), contentAlignment = Alignment.Center) {
+                Checkbox(
+                    checked =isSelected,
+                    onCheckedChange ={/*we do nothing, because check will change on row click*/},
+                    enabled = false,
+                    colors = CheckboxDefaults.colors(
+                        disabledUncheckedColor = MaterialTheme.colors.onBackground.copy(alpha = 0.4f),
+                        disabledCheckedColor =MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
+
+                    )
+                )
+            }
+        }
+
 
     }
 }

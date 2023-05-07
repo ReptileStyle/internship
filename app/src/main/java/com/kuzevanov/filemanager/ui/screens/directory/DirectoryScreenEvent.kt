@@ -9,4 +9,7 @@ sealed class DirectoryScreenEvent {
     data class OnFileClick(val file:DirectoryEntry):DirectoryScreenEvent()
     object OnBackButtonPress:DirectoryScreenEvent()
     data class OnDropdownMenuItemClick(val item: DropdownMenuTreeNodes):DirectoryScreenEvent()
+    data class OnSelectFile(val file:DirectoryEntry):DirectoryScreenEvent()
+
+    object OnShareSelectedFilesClick:DirectoryScreenEvent()
 }

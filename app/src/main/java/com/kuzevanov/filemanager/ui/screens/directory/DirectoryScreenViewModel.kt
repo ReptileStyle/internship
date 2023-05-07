@@ -69,14 +69,7 @@ class DirectoryScreenViewModel @Inject constructor(
                 openFile(event.file)
             }
             is DirectoryScreenEvent.OnBackButtonPress -> {
-                val parent = state.directory?.getParent()
-                if (parent?.path != "/storage/emulated" && parent != null) {
-                    path = parent.path
-                } else {
-                    viewModelScope.launch {
-                        _uiEvent.send(UiEvent.NavigateUp)
-                    }
-                }
+                onBackButtonPress()
             }
             is DirectoryScreenEvent.OnDropdownMenuItemClick -> {
                 Log.d(TAG,state.toString())
@@ -89,6 +82,12 @@ class DirectoryScreenViewModel @Inject constructor(
                         changeSortingOrder(event2)
                     }
                 }
+            }
+            is DirectoryScreenEvent.OnSelectFile -> {
+                onSelectFile(event.file)
+            }
+            DirectoryScreenEvent.OnShareSelectedFilesClick -> {
+                shareSelectedFiles()
             }
         }
     }
@@ -145,6 +144,41 @@ class DirectoryScreenViewModel @Inject constructor(
                         state.copy(sortingOrder = sortingOrder, files = state.files.asReversed())
             }
         }
+    }
+
+    private fun onSelectFile(file: DirectoryEntry){
+        state = if (state.selectedFiles.contains(file)){
+            state.copy(selectedFiles = state.selectedFiles.minus(file))
+        }else{
+            state.copy(selectedFiles = state.selectedFiles.plus(file))
+        }
+    }
+
+    private fun onBackButtonPress(){
+        if(state.selectedFiles.isEmpty()) {
+            val parent = state.directory?.getParent()
+            if (parent?.path != "/storage/emulated" && parent != null) {
+                path = parent.path
+            } else {
+                viewModelScope.launch {
+                    _uiEvent.send(UiEvent.NavigateUp)
+                }
+            }
+        }else{
+            state=state.copy(selectedFiles = listOf())
+        }
+    }
+
+    private fun shareSelectedFiles(){
+        try {
+            state = state.copy(selectedFiles = listOf())
+            fileSystem.shareFiles(state.selectedFiles.map { it.fileSystemEntry })
+        }catch (e:Exception){
+            viewModelScope.launch {
+                _uiEvent.send(UiEvent.Message(e.message ?: "error"))
+            }
+        }
+
     }
 
     override fun onCleared() {
