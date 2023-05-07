@@ -1,7 +1,11 @@
 package com.kuzevanov.filemanager.fileSystem.LocalFileSystem
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.webkit.MimeTypeMap
+import androidx.core.content.FileProvider
 import com.kuzevanov.filemanager.fileSystem.FileSystem
 import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.HashcodeRepository
@@ -12,6 +16,7 @@ import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
+
 
 class LocalFileSystem @Inject constructor(
     @ApplicationContext
@@ -41,7 +46,7 @@ class LocalFileSystem @Inject constructor(
 }
 
 class LocalFileSystemEntry(
-    override val fileSystem: FileSystem,
+    override val fileSystem: LocalFileSystem,
     private val javaFile: File,
     override val checkIfChildrenModified: suspend (String) -> Map<String, Boolean>,
 ) :
@@ -90,5 +95,36 @@ class LocalFileSystemEntry(
         return Hashcode(path = path, hashcode = MD5.calculateMD5(javaFile))
     }
 
+    override fun open() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW)
+            val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+            val uri = FileProvider.getUriForFile(fileSystem.context,"${fileSystem.context.packageName}.provider",javaFile)
+            intent.setDataAndType(uri,mime)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK+Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            fileSystem.context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            throw e
+        }
+    }
 
+    override fun share() {
+        try {
+            val intent = Intent(Intent.ACTION_SEND)
+            val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+            val uri = FileProvider.getUriForFile(
+                fileSystem.context,
+                "${fileSystem.context.packageName}.provider",
+                javaFile
+            )
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.setType(mime)
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Sharing file...")
+            intent.putExtra(Intent.EXTRA_TEXT, "Sharing file...")
+            fileSystem.context.startActivity(Intent.createChooser(intent, "Share file"))
+        }catch (e:Exception){
+            throw e
+        }
+    }
 }

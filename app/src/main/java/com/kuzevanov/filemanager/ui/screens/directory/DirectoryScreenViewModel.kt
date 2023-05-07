@@ -96,7 +96,11 @@ class DirectoryScreenViewModel @Inject constructor(
     private fun openFile(file: DirectoryEntry) {
         try {
             Log.d(TAG, file.path)
-            path = file.path
+            if(file.isDirectory) {
+                path = file.path
+            }else{
+                file.open()
+            }
 
         } catch (e: Exception) {
             viewModelScope.launch {
