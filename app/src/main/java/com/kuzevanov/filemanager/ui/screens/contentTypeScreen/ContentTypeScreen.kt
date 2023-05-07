@@ -20,6 +20,7 @@ fun ContentTypeScreen(
 ) {
     val context = LocalContext.current
     LaunchedEffect(key1 = true) {
+        Log.d("contentType","conntentTypeScreen")
         eventFlow.collect { event ->
             when (event) {
                 is UiEvent.Message -> {

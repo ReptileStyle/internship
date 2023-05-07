@@ -13,7 +13,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.animation.ExperimentalAnimationApi
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 import com.kuzevanov.filemanager.navigation.SetupNavGraph
 import com.kuzevanov.filemanager.ui.theme.MyApplicationTheme
@@ -78,10 +79,11 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    @OptIn(ExperimentalAnimationApi::class)
     private fun onPermissionsGranted() {
         setContent() {
             MyApplicationTheme() {
-                SetupNavGraph(navHostController = rememberNavController())
+                SetupNavGraph(navHostController = rememberAnimatedNavController())
             }
         }
     }

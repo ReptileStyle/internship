@@ -6,12 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component.model.DataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -29,9 +31,11 @@ class ContentTypeScreenViewModel @Inject constructor(
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    private val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
+
     var type: SpecialFolderTypes? = null
         set(value) {
-            viewModelScope.launch {
+            coroutineScopeIO.launch {
                 if (value != null) {
                     field = value
                     state = state.copy(type = value)
@@ -53,7 +57,7 @@ class ContentTypeScreenViewModel @Inject constructor(
     }
 
     private fun refreshData() {
-        viewModelScope.launch {
+        coroutineScopeIO.launch {
             state = state.copy(isRefreshing = true)
             state = state.copy(
                 isRefreshing = false,
@@ -69,6 +73,11 @@ class ContentTypeScreenViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    override fun onCleared() {
+        coroutineScopeIO.cancel()
+        super.onCleared()
     }
 }
 

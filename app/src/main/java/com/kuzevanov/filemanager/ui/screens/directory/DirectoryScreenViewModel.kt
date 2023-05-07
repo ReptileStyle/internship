@@ -15,6 +15,7 @@ import com.kuzevanov.filemanager.ui.common.model.SortingOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -30,19 +31,28 @@ class DirectoryScreenViewModel @Inject constructor(
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
+
     var path: String = ""
         set(value) {
             field = value
             try {
-                val directory = DirectoryInfo(fileSystem.getEntry(value))
-                viewModelScope.launch {
-                    state = state.copy(
-                        directory = directory,
-                        files = directory.files.sortedBy { it.name.lowercase() })
+                coroutineScopeIO.launch {
+                    Log.d(TAG,"ioscope")
+                    val directory = DirectoryInfo(fileSystem.getEntry(value))
+                    state = state.copy(directory = directory)
+                    val job1 = coroutineScopeIO.launch {
+                        val files = directory.files
+                        state = state.copy(
+                            files = files.sortedBy { it.name.lowercase() })
+                    }
+                    coroutineScopeIO.launch {
+                        val map = directory.getIsModifiedMapJob()
+                        job1.join()//preventing race condition
+                        state = state.copy(isModifiedMap = map )
+                    }
                 }
-                CoroutineScope(Dispatchers.IO).launch {
-                    state = state.copy(isModifiedMap = directory.getIsModifiedMapJob()  )
-                }
+
             } catch (e: Exception) {
                 Log.d(TAG, "${e.message}")
             }
@@ -69,6 +79,7 @@ class DirectoryScreenViewModel @Inject constructor(
                 }
             }
             is DirectoryScreenEvent.OnDropdownMenuItemClick -> {
+                Log.d(TAG,state.toString())
                 val event2 = event.item.event
                 if (event2 != null) {
                     if (event2 is SortingMode) {
@@ -131,7 +142,13 @@ class DirectoryScreenViewModel @Inject constructor(
             }
         }
     }
+
+    override fun onCleared() {
+        coroutineScopeIO.cancel()
+        super.onCleared()
+    }
 }
+
 
 fun <T> List<T>.reversed(bool: Boolean = true): List<T> {
     return if (bool)

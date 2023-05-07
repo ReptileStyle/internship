@@ -2,6 +2,7 @@ package com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component
 
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -31,7 +33,7 @@ fun ContentTypeImagesList(
     val refreshState = rememberPullRefreshState(
         refreshing = state.isRefreshing,
         onRefresh = { onEvent(ContentTypeScreenEvent.OnRefresh) })
-    Box(modifier = Modifier.pullRefresh(refreshState)){
+    Box(modifier = Modifier.pullRefresh(refreshState).background(color = MaterialTheme.colors.background)){
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {

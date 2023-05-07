@@ -2,14 +2,16 @@ package com.kuzevanov.filemanager.navigation
 
 import android.os.Environment
 import android.util.Log
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreen
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreenViewModel
@@ -19,11 +21,12 @@ import com.kuzevanov.filemanager.ui.screens.home.HomeScreen
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreenViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SetupNavGraph(
     navHostController: NavHostController
 ) {
-    NavHost(
+    AnimatedNavHost(
         navController = navHostController,
         startDestination = Route.home
     ) {
@@ -34,11 +37,14 @@ fun SetupNavGraph(
                 navArgument("location"){
                     this.defaultValue = defaultLocation
                 }
-            )
+            ),
+            enterTransition = {slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)},
+            exitTransition = {slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)}
         ) {
             val viewModel: DirectoryScreenViewModel = hiltViewModel()
             val coroutineScope = rememberCoroutineScope()
             LaunchedEffect(key1 = true){
+                Log.d("navigation","LaunchedEffectDir")
                 coroutineScope.launch {
                     var location = it.arguments?.getString("location") ?: defaultLocation
                     viewModel.path = location
@@ -53,7 +59,10 @@ fun SetupNavGraph(
                 onNavigateUp = navHostController::navigateUp,
             )
         }
-        composable(route = Route.home){
+        composable(
+            route = Route.home,
+            exitTransition = {slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left)}
+        ){
             val viewModel:HomeScreenViewModel = hiltViewModel()
             HomeScreen(
                 state = viewModel.state,
@@ -69,11 +78,14 @@ fun SetupNavGraph(
                 navArgument("contentType"){
                     this.defaultValue = 0
                 }
-            )
+            ),
+            enterTransition = {slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left)},
+            exitTransition = {slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right)}
         ){
             val viewModel:ContentTypeScreenViewModel = hiltViewModel()
             val coroutineScope = rememberCoroutineScope()
             LaunchedEffect(key1 = true){
+                Log.d("contentType","launchedEffects")
                 coroutineScope.launch {
                     val typeNumber = it.arguments!!.getInt("contentType")
                     viewModel.type = SpecialFolderTypes.getTypeFromInt(typeNumber)
