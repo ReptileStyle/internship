@@ -13,6 +13,8 @@ import com.kuzevanov.filemanager.fileSystem.model.DirectoryInfo
 import com.kuzevanov.filemanager.ui.common.model.SortingMode
 import com.kuzevanov.filemanager.ui.common.model.SortingOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -33,9 +35,14 @@ class DirectoryScreenViewModel @Inject constructor(
             field = value
             try {
                 val directory = DirectoryInfo(fileSystem.getEntry(value))
-                state = state.copy(
-                    directory = directory,
-                    files = directory.files.sortedBy { it.name.lowercase() })
+                viewModelScope.launch {
+                    state = state.copy(
+                        directory = directory,
+                        files = directory.files.sortedBy { it.name.lowercase() })
+                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    state = state.copy(isModifiedMap = directory.getIsModifiedMapJob()  )
+                }
             } catch (e: Exception) {
                 Log.d(TAG, "${e.message}")
             }

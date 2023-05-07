@@ -4,6 +4,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,6 +17,7 @@ import com.kuzevanov.filemanager.ui.screens.directory.DirectoryScreen
 import com.kuzevanov.filemanager.ui.screens.directory.DirectoryScreenViewModel
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreen
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreenViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun SetupNavGraph(
@@ -35,10 +37,13 @@ fun SetupNavGraph(
             )
         ) {
             val viewModel: DirectoryScreenViewModel = hiltViewModel()
+            val coroutineScope = rememberCoroutineScope()
             LaunchedEffect(key1 = true){
-                var location =it.arguments?.getString("location") ?: defaultLocation
-                viewModel.path=location
-                Log.d("nav",viewModel.path)
+                coroutineScope.launch {
+                    var location = it.arguments?.getString("location") ?: defaultLocation
+                    viewModel.path = location
+                    Log.d("navigation", viewModel.path)
+                }
             }
             DirectoryScreen(
                 state = viewModel.state,
@@ -67,9 +72,12 @@ fun SetupNavGraph(
             )
         ){
             val viewModel:ContentTypeScreenViewModel = hiltViewModel()
+            val coroutineScope = rememberCoroutineScope()
             LaunchedEffect(key1 = true){
-                val typeNumber = it.arguments!!.getInt("contentType")
-                viewModel.type = SpecialFolderTypes.getTypeFromInt(typeNumber)
+                coroutineScope.launch {
+                    val typeNumber = it.arguments!!.getInt("contentType")
+                    viewModel.type = SpecialFolderTypes.getTypeFromInt(typeNumber)
+                }
             }
             ContentTypeScreen(
                 state = viewModel.state,

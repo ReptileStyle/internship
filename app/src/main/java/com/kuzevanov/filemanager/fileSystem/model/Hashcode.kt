@@ -9,5 +9,7 @@ import kotlinx.parcelize.Parcelize
 @Entity(tableName = "hashcode")
 data class Hashcode(
     @PrimaryKey val path: String = "",
-    val hashcode:String = ""
-):Parcelable
+    val hashcode: String = "",
+    val isChanged: Boolean = false,//if this file was changed since last launch
+    val depth: Int = path.count { it == '/' }//amount of parent folders
+) : Parcelable

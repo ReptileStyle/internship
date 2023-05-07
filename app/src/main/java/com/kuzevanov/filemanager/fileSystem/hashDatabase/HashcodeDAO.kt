@@ -2,22 +2,21 @@ package com.kuzevanov.filemanager.fileSystem.hashDatabase
 
 import androidx.room.*
 import com.kuzevanov.filemanager.fileSystem.model.Hashcode
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HashcodeDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHashCode(hashcode: Hashcode)
+    suspend fun insertHashcode(hashcode: Hashcode)
 
     @Update
-    suspend fun updateHashCode(hashcode: Hashcode)
+    suspend fun updateHashcode(hashcode: Hashcode)
 
     @Delete
-    suspend fun deleteHashCode(hashcode: Hashcode)
+    suspend fun deleteHashcode(hashcode: Hashcode)
 
-    @Query("SELECT * FROM hashcode WHERE path = :path")
-    fun getHashCode(path: String): Flow<Hashcode>
+    @Query("SELECT * FROM hashcode WHERE path = :path LIMIT 1")
+    suspend fun getHashcode(path: String): Hashcode?
 
-    @Query("SELECT * FROM hashcode WHERE path LIKE :path || '%'")
-    fun getAllHashCodesInDir(path:String): Flow<List<Hashcode>>
+    @Query("SELECT * FROM hashcode WHERE depth = :depth AND path LIKE :path || '%'")
+    fun getAllHashcodesInDir(path:String, depth:Int = path.count { it=='/' } + 1): List<Hashcode>
 }

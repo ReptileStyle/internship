@@ -11,7 +11,7 @@ abstract class FileSystemEntry {
     abstract val isDirectory: Boolean
     abstract val size:Long
     abstract val countChildren:Int
-    abstract val isModified:Boolean
+    abstract val checkIfChildrenModified:suspend (String) -> Map<String, Boolean>
 
     abstract fun readBytes(): ByteArray?
     abstract fun writeBytes(data: ByteArray): Boolean
@@ -20,4 +20,5 @@ abstract class FileSystemEntry {
     abstract fun getParent(): FileSystemEntry?
     abstract fun getHashcode():Hashcode
 
+//    abstract suspend fun isModified():Boolean
 }

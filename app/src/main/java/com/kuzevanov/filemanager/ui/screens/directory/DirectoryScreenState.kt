@@ -10,5 +10,6 @@ data class DirectoryScreenState(
     val selectedFiles: List<DirectoryEntry> = listOf(),
     val directory: DirectoryInfo? = null,
     val sortingOrder: SortingOrder = SortingOrder.Ascending,
-    val sortingMode:SortingMode = SortingMode.ByName
+    val sortingMode:SortingMode = SortingMode.ByName,
+    val isModifiedMap:Map<String,Boolean> = mapOf()
 )
