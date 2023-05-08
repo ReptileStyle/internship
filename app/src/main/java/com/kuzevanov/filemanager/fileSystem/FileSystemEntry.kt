@@ -12,6 +12,7 @@ abstract class FileSystemEntry {
     abstract val size:Long
     abstract val countChildren:Int
     abstract val checkIfChildrenModified:suspend (String) -> Map<String, Boolean>
+    abstract val isHidden:Boolean
 
     abstract fun readBytes(): ByteArray?
     abstract fun writeBytes(data: ByteArray): Boolean

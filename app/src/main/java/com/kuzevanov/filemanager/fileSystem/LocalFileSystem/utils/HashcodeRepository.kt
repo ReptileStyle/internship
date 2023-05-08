@@ -1,11 +1,11 @@
 package com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils
 
+import android.os.Build
 import android.os.Environment
+import android.util.Log
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.HashcodeDAO
 import com.kuzevanov.filemanager.fileSystem.model.Hashcode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import javax.inject.Inject
 
@@ -17,51 +17,162 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
     suspend fun deleteHashcode(hashcode: Hashcode) = hashcodeDAO.deleteHashcode(hashcode = hashcode)
     suspend fun getHashcode(path: String) = hashcodeDAO.getHashcode(path)
     suspend fun getAllHashcodesInDir(path: String) = hashcodeDAO.getAllHashcodesInDir(path)
+
+    /**
+     * optimization:
+     * 1) check most important folders and add new/changed files to RecentFile list
+     * 1) check everything not in android or cache dirs and add new/changed files to RecentFile list
+     * 2) check cache dirs, do not add to recent files
+     * 3) check android dir
+     */
     fun startCheckingFiles() {
-        coroutineScope.launch {
-            var rootFolder = Environment.getExternalStorageDirectory()
-            fun getHashesOfAllChildren(file: File) {
-                val listFiles = file.listFiles()
-                if(listFiles!=null) {
-//                    Log.d("files", "hashing ${file.absoluteFile}")
-                    coroutineScope.launch {
-                        val storedHashForChildren = getAllHashcodesInDir(file.absolutePath)
-//                        storedHashForChildren.forEach {
-//                            Log.d("stored",it.toString())
-//                        }
-                        listFiles.forEach { file ->
-                            if (!file.isDirectory) {
-                                val hash = MD5.calculateMD5(file)
-                                val storedHash =
-                                    storedHashForChildren.find { it.path == file.absolutePath }
-//                                if(file.name=="1.doc"){
-//                                    Log.d("1.doc","$hash\n$storedHash")
-//                                }
-                                if (storedHash != null) {
-//                                    if(storedHash.hashcode!=hash){
-//                                        Log.d("files","hash not equal ${file.absoluteFile}")
-//                                    }
-                                    updateHashcode(
-                                        hashcode = Hashcode(
-                                            file.absolutePath,
-                                            hash,
-                                            storedHash.hashcode!=hash
-                                        )
+        val rootFolder = Environment.getExternalStorageDirectory()
+        val job0 = coroutineScope.launch {
+            importantDirs.forEach {
+                val superJob = Job()
+                val file = Environment.getExternalStoragePublicDirectory(it)
+                getHashesOfAllChildren(
+                    file,
+                    conditionToSkip = { false },
+                    job = superJob
+                )
+                superJob.children.forEach { it.join() }
+            }
+        }
+
+        val job1 = coroutineScope.launch {
+            val superJob = Job()
+            job0.join()
+            getHashesOfAllChildren(
+                rootFolder,
+                conditionToSkip = { file ->
+                    file.isHidden || file.absolutePath == "${Environment.getExternalStorageDirectory()}/Android" || file.absolutePath.contains(
+                        "cache"
+                    )
+                },
+                job = superJob
+            )
+            superJob.children.forEach { it.join() }
+        }
+        val job2 = coroutineScope.launch {
+            job1.join()
+            val superJob = Job()
+            getHashesOfAllChildren(
+                rootFolder,
+                conditionToSkip = { file ->
+                    file.isHidden || file.absolutePath == "${Environment.getExternalStorageDirectory()}/Android" || !file.absolutePath.contains(
+                        "cache"
+                    )
+
+                },
+                job = superJob
+            )
+            superJob.children.forEach { it.join() }
+        }
+        val job3 = coroutineScope.launch {
+            job2.join()
+            val superJob = Job()
+            getHashesOfAllChildren(
+                File("${rootFolder.absolutePath}/Android"), { file ->
+                    file.isHidden
+                },
+                job = superJob
+            )
+            superJob.children.forEach { it.join() }
+        }
+    }
+
+
+    private val importantDirs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            listOf(
+//                "${Environment.getExternalStorageDirectory().absolutePath}/Download",
+                Environment.DIRECTORY_DOWNLOADS,
+                Environment.DIRECTORY_PICTURES,
+                Environment.DIRECTORY_DCIM,
+                Environment.DIRECTORY_SCREENSHOTS,
+                Environment.DIRECTORY_DOCUMENTS,
+                Environment.DIRECTORY_MUSIC,
+                Environment.DIRECTORY_ALARMS,
+                Environment.DIRECTORY_AUDIOBOOKS,
+                Environment.DIRECTORY_NOTIFICATIONS,
+                Environment.DIRECTORY_RECORDINGS,
+                Environment.DIRECTORY_PODCASTS,
+                Environment.DIRECTORY_RINGTONES,
+                Environment.DIRECTORY_MOVIES
+            )
+        } else {
+            listOf(
+//                "${Environment.getExternalStorageDirectory().absolutePath}/Download",
+                Environment.DIRECTORY_DOWNLOADS,
+                Environment.DIRECTORY_PICTURES,
+                Environment.DIRECTORY_DCIM,
+                Environment.DIRECTORY_SCREENSHOTS,
+                Environment.DIRECTORY_DOCUMENTS,
+                Environment.DIRECTORY_MUSIC,
+                Environment.DIRECTORY_ALARMS,
+                Environment.DIRECTORY_AUDIOBOOKS,
+                Environment.DIRECTORY_NOTIFICATIONS,
+                Environment.DIRECTORY_PODCASTS,
+                Environment.DIRECTORY_RINGTONES,
+                Environment.DIRECTORY_MOVIES
+            )
+        }
+    } else {
+        listOf(
+//            "${Environment.getExternalStorageDirectory().absolutePath}/Download",//for some reason in is not DIRECTORY_DOWNLOADS
+            Environment.DIRECTORY_DOWNLOADS,
+            Environment.DIRECTORY_PICTURES,
+            Environment.DIRECTORY_DCIM,
+            Environment.DIRECTORY_DOCUMENTS,
+            Environment.DIRECTORY_MUSIC,
+            Environment.DIRECTORY_ALARMS,
+            Environment.DIRECTORY_NOTIFICATIONS,
+            Environment.DIRECTORY_PODCASTS,
+            Environment.DIRECTORY_RINGTONES,
+            Environment.DIRECTORY_MOVIES
+        )
+    }
+
+    private fun getHashesOfAllChildren(file: File, conditionToSkip: (File) -> Boolean,job:Job) {
+        if (conditionToSkip(file)) return
+        val listFiles = file.listFiles()
+        if (listFiles != null) {
+            coroutineScope.launch(job) {
+                val storedHashForChildren = getAllHashcodesInDir(file.absolutePath)
+                listFiles.forEach { file ->
+                    coroutineScope.launch(job) {
+                        if (!file.isDirectory && !file.isHidden) {
+                            val hash = MD5.calculateMD5(file)
+                            val storedHash =
+                                storedHashForChildren.find { it.path == file.absolutePath }
+                            if (storedHash != null) {
+                                updateHashcode(
+                                    hashcode = Hashcode(
+                                        file.absolutePath,
+                                        hash,
+                                        storedHash.hashcode != hash
                                     )
-                                } else {
-                                    insertHashcode(hashcode = Hashcode(file.absolutePath, hash, depth = file.absolutePath.count{it=='/'}))
-                                }
+                                )
+                            } else {
+                                insertHashcode(
+                                    hashcode = Hashcode(
+                                        file.absolutePath,
+                                        hash,
+                                        depth = file.absolutePath.count { it == '/' })
+                                )
                             }
                         }
-                    }
-                    listFiles.forEach {
-                        getHashesOfAllChildren(it)
+                        Log.d("files", file.absolutePath)
                     }
                 }
-
             }
-            getHashesOfAllChildren(rootFolder)
+            listFiles.forEach {
+                getHashesOfAllChildren(it, conditionToSkip,job)
+            }
         }
     }
 }
+
+
 

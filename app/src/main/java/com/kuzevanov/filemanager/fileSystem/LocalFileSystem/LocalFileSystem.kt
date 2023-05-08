@@ -25,7 +25,10 @@ class LocalFileSystem @Inject constructor(
     val repository: HashcodeRepository
 ) : FileSystem() {
     init {
+//        context.startService(Intent(context,FileObserverService::class.java))
         repository.startCheckingFiles()
+
+
     }
 
     override fun getEntry(path: String) =
@@ -80,7 +83,7 @@ class LocalFileSystemEntry(
                 javaFile.listFiles()?.size ?: 0
             else
                 0
-
+    override val isHidden: Boolean = javaFile.isHidden
 
 
     override fun readBytes(): ByteArray = javaFile.readBytes()
@@ -93,11 +96,16 @@ class LocalFileSystemEntry(
         if (recursive) javaFile.deleteRecursively() else javaFile.delete()
 
     override fun listFiles(): List<LocalFileSystemEntry>? {
-        return javaFile.listFiles()?.map { LocalFileSystemEntry(fileSystem, it,checkIfChildrenModified) }
+        return javaFile.listFiles()
+            ?.map { LocalFileSystemEntry(fileSystem, it, checkIfChildrenModified) }
     }
 
     override fun getParent(): LocalFileSystemEntry? {
-        return LocalFileSystemEntry(fileSystem, javaFile.parentFile ?: return null,checkIfChildrenModified)
+        return LocalFileSystemEntry(
+            fileSystem,
+            javaFile.parentFile ?: return null,
+            checkIfChildrenModified
+        )
     }
 
     override fun getHashcode(): Hashcode {
@@ -108,14 +116,16 @@ class LocalFileSystemEntry(
         try {
             val intent = Intent(Intent.ACTION_VIEW)
             val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-            val uri = FileProvider.getUriForFile(fileSystem.context,"${fileSystem.context.packageName}.provider",javaFile)
-            intent.setDataAndType(uri,mime)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK+Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val uri = FileProvider.getUriForFile(
+                fileSystem.context,
+                "${fileSystem.context.packageName}.provider",
+                javaFile
+            )
+            intent.setDataAndType(uri, mime)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK + Intent.FLAG_GRANT_READ_URI_PERMISSION)
             fileSystem.context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
             throw e
         }
     }
-
-
 }
