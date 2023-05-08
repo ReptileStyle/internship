@@ -1,22 +1,35 @@
 package com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils
 
+import android.content.Context
+
 import android.os.Build
 import android.os.Environment
 import android.util.Log
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.HashcodeDAO
+import com.kuzevanov.filemanager.fileSystem.hashDatabase.RecentFileDAO
 import com.kuzevanov.filemanager.fileSystem.model.Hashcode
+import com.kuzevanov.filemanager.fileSystem.model.RecentFile
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import java.io.File
 import javax.inject.Inject
 
-class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDAO) {
+class HashcodeRepository @Inject constructor(
+    @ApplicationContext
+    context:Context,
+    private val hashcodeDAO: HashcodeDAO,
+    private val recentFileDAO: RecentFileDAO) {
     val coroutineScope = CoroutineScope(Dispatchers.Default)
+
+    val installTime = context.packageManager.getPackageInfo("com.kuzevanov.filemanager",0).lastUpdateTime
 
     suspend fun insertHashcode(hashcode: Hashcode) = hashcodeDAO.insertHashcode(hashcode = hashcode)
     suspend fun updateHashcode(hashcode: Hashcode) = hashcodeDAO.updateHashcode(hashcode = hashcode)
     suspend fun deleteHashcode(hashcode: Hashcode) = hashcodeDAO.deleteHashcode(hashcode = hashcode)
     suspend fun getHashcode(path: String) = hashcodeDAO.getHashcode(path)
     suspend fun getAllHashcodesInDir(path: String) = hashcodeDAO.getAllHashcodesInDir(path)
+
+    suspend fun insertRecent(recentFile: RecentFile) = recentFileDAO.insertRecent(recentFile)
 
     /**
      * optimization:
@@ -34,7 +47,8 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                 getHashesOfAllChildren(
                     file,
                     conditionToSkip = { false },
-                    job = superJob
+                    job = superJob,
+                    shouldAddToRecent = true
                 )
                 superJob.children.forEach { it.join() }
             }
@@ -50,7 +64,8 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                         "cache"
                     )
                 },
-                job = superJob
+                job = superJob,
+                shouldAddToRecent = false
             )
             superJob.children.forEach { it.join() }
         }
@@ -65,7 +80,8 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                     )
 
                 },
-                job = superJob
+                job = superJob,
+                shouldAddToRecent = false
             )
             superJob.children.forEach { it.join() }
         }
@@ -76,7 +92,8 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                 File("${rootFolder.absolutePath}/Android"), { file ->
                     file.isHidden
                 },
-                job = superJob
+                job = superJob,
+                shouldAddToRecent = false
             )
             superJob.children.forEach { it.join() }
         }
@@ -134,7 +151,7 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
         )
     }
 
-    private fun getHashesOfAllChildren(file: File, conditionToSkip: (File) -> Boolean,job:Job) {
+    private fun getHashesOfAllChildren(file: File, conditionToSkip: (File) -> Boolean,job:Job,shouldAddToRecent:Boolean) {
         if (conditionToSkip(file)) return
         val listFiles = file.listFiles()
         if (listFiles != null) {
@@ -147,13 +164,30 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                             val storedHash =
                                 storedHashForChildren.find { it.path == file.absolutePath }
                             if (storedHash != null) {
-                                updateHashcode(
-                                    hashcode = Hashcode(
-                                        file.absolutePath,
-                                        hash,
-                                        storedHash.hashcode != hash
+                                if(storedHash.hashcode==hash){
+                                    if(storedHash.isChanged){
+                                        updateHashcode(
+                                            hashcode = Hashcode(
+                                                file.absolutePath,
+                                                hash,
+                                                false
+                                            )
+                                        )
+                                    }
+                                }else{
+                                    updateHashcode(
+                                        hashcode = Hashcode(
+                                            file.absolutePath,
+                                            hash,
+                                            true
+                                        )
                                     )
-                                )
+                                    if(shouldAddToRecent){
+                                        Log.d("files",file.absolutePath)
+                                        insertRecent(RecentFile(path = file.absolutePath,date = System.currentTimeMillis()))
+                                    }
+                                }
+
                             } else {
                                 insertHashcode(
                                     hashcode = Hashcode(
@@ -161,14 +195,17 @@ class HashcodeRepository @Inject constructor(private val hashcodeDAO: HashcodeDA
                                         hash,
                                         depth = file.absolutePath.count { it == '/' })
                                 )
+                                if(shouldAddToRecent && file.lastModified()>installTime){
+                                    insertRecent(RecentFile(path = file.absolutePath,date = System.currentTimeMillis()))
+                                }
                             }
                         }
-                        Log.d("files", file.absolutePath)
+//                        Log.d("files", file.absolutePath)
                     }
                 }
             }
             listFiles.forEach {
-                getHashesOfAllChildren(it, conditionToSkip,job)
+                getHashesOfAllChildren(it, conditionToSkip,job,shouldAddToRecent)
             }
         }
     }

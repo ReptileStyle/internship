@@ -6,7 +6,8 @@ import androidx.room.Room
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.HashcodeRepository
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.HashcodeDAO
-import com.kuzevanov.filemanager.fileSystem.hashDatabase.HashcodeDatabase
+import com.kuzevanov.filemanager.fileSystem.hashDatabase.FileSystemDatabase
+import com.kuzevanov.filemanager.fileSystem.hashDatabase.RecentFileDAO
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,8 +23,9 @@ object AppModule {
     fun provideFileSystem(
         @ApplicationContext
         context: Context,
-        repository: HashcodeRepository
-    ): LocalFileSystem = LocalFileSystem(context,repository)
+        repository: HashcodeRepository,
+        recentFileDAO: RecentFileDAO
+    ): LocalFileSystem = LocalFileSystem(context,repository,recentFileDAO)
 
     @Provides
     fun provideContentResolver(
@@ -33,21 +35,30 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideHashcodeDatabase(@ApplicationContext context: Context): HashcodeDatabase {
-        return Room.databaseBuilder(context, HashcodeDatabase::class.java, "hashcode.db")
+    fun provideFileSystemDatabase(@ApplicationContext context: Context): FileSystemDatabase {
+        return Room.databaseBuilder(context, FileSystemDatabase::class.java, "hashcode.db")
             .fallbackToDestructiveMigration()
             .build()
     }
 
     @Singleton
     @Provides
-    fun provideHashcodeDAO(database: HashcodeDatabase): HashcodeDAO {
+    fun provideHashcodeDAO(database: FileSystemDatabase): HashcodeDAO {
         return database.hashcodeDao()
     }
 
     @Singleton
     @Provides
-    fun provideHashcodeRepository(dao:HashcodeDAO):HashcodeRepository{
-        return HashcodeRepository(dao)
+    fun provideRecentFileDAO(database: FileSystemDatabase): RecentFileDAO {
+        return database.recentFileDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideHashcodeRepository(
+        @ApplicationContext context: Context,
+        dao:HashcodeDAO,
+        recentFileDAO: RecentFileDAO):HashcodeRepository{
+        return HashcodeRepository(context, dao,recentFileDAO)
     }
 }

@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -105,14 +107,22 @@ fun HomeScreen(
                 ),
             elevation = lerp(0.dp, 16.dp, swipeProgress)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Recent files",
-                    style = MaterialTheme.typography.h6.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colors.onSurface
+            LazyColumn(modifier = Modifier.padding(16.dp)) {
+                item {
+                    Text(
+                        text = "Recent files",
+                        style = MaterialTheme.typography.h6.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colors.onSurface
+                        )
                     )
-                )
+                }
+                items(state.resentFiles){
+                    Text(
+                        text = "${it.path}",
+                        style = MaterialTheme.typography.body1
+                    )
+                }
             }
         }
     }

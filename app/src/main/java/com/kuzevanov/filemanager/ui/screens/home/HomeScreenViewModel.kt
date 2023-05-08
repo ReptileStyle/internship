@@ -12,7 +12,10 @@ import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.navigation.Route
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -36,6 +39,7 @@ class HomeScreenViewModel @Inject constructor(
             totalInternalSpace = totalMemory,
             usedInternalSpace = totalMemory-availableMemory
         )
+        startCollectingRecentFiles()
     }
 
     fun onEvent(event:HomeScreenEvent){
@@ -101,6 +105,18 @@ class HomeScreenViewModel @Inject constructor(
         val blockSize = stat.blockSizeLong
         val totalBlocks = stat.blockCountLong
         return totalBlocks*blockSize
+    }
+
+    private fun startCollectingRecentFiles(){
+        viewModelScope.launch {
+            fileSystem.getRecentFiles().collectLatest{//drop if not enough time to process
+                val list = it.sortedBy { it.date }.map { fileSystem.getEntry(it.path) }
+                state = state.copy(resentFiles = list)
+                CoroutineScope(Dispatchers.IO).launch{
+                    fileSystem.dropOutdatedRecentFiles()
+                }
+            }
+        }
     }
 }
 
