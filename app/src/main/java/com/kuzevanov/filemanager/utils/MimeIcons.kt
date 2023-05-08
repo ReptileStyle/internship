@@ -9,8 +9,27 @@ import androidx.compose.ui.res.vectorResource
 
 import com.kuzevanov.filemanager.R
 import com.kuzevanov.filemanager.fileSystem.model.DirectoryEntry
+import java.io.File
+
 @Composable
 fun DirectoryEntry.iconInfo(): Pair<ImageVector, String> {
+    return if (this.isDirectory) { // Folders
+        Icons.Filled.Folder to "Folder"
+    } else { // Otherwise, check the mime type
+        mimeTypeIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)]
+            ?: mimeTypeCustomIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)].let{
+                if(it!=null){
+                    Pair(ImageVector.vectorResource(id = it.first),it.second)
+                }else{
+                    null
+                }
+            }
+            ?: (Icons.Filled.QuestionMark to "Unknown") // If an unrecognized mime type, resort to "Unknown"
+    }
+}
+
+@Composable
+fun File.iconInfo(): Pair<ImageVector, String> {
     return if (this.isDirectory) { // Folders
         Icons.Filled.Folder to "Folder"
     } else { // Otherwise, check the mime type

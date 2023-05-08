@@ -8,9 +8,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
+import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.navigation.Route
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.ui.common.model.BottomBarWhileSelectingFilesEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +51,15 @@ class HomeScreenViewModel @Inject constructor(
             }
             is HomeScreenEvent.OnOpenSpecialFolderClick->{
                 openSpecialFolder(event.type)
+            }
+            is HomeScreenEvent.OnSelectFile -> {
+                onSelectFile(event.file)
+            }
+            HomeScreenEvent.OnBackClick -> {
+                state=state.copy(selectedFiles = listOf())
+            }
+            is HomeScreenEvent.OnBottomBarWhileSelectingFilesEvent -> {
+                onBottomBarWhileSelectingFilesEvent(event.bottomBarWhileSelectingFilesEvent)
             }
         }
     }
@@ -110,12 +121,39 @@ class HomeScreenViewModel @Inject constructor(
     private fun startCollectingRecentFiles(){
         viewModelScope.launch {
             fileSystem.getRecentFiles().collectLatest{//drop if not enough time to process
-                val list = it.sortedBy { it.date }.map { fileSystem.getEntry(it.path) }
+                val list = it.sortedBy { -it.date }.map { fileSystem.getEntry(it.path) }
                 state = state.copy(resentFiles = list)
-                CoroutineScope(Dispatchers.IO).launch{
-                    fileSystem.dropOutdatedRecentFiles()
+                if(list.size>=120) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        fileSystem.dropOutdatedRecentFiles()
+                    }
                 }
             }
+        }
+    }
+    private fun shareSelectedFiles(){
+        try {
+            fileSystem.shareFiles(state.selectedFiles)
+            state = state.copy(selectedFiles = listOf())
+        }catch (e:Exception){
+            viewModelScope.launch {
+                _uiEvent.send(UiEvent.Message(e.message ?: "error"))
+            }
+        }
+
+    }
+    private fun onBottomBarWhileSelectingFilesEvent(event: BottomBarWhileSelectingFilesEvent){
+        when(event){
+            BottomBarWhileSelectingFilesEvent.OnShareFiles -> {
+                shareSelectedFiles()
+            }
+        }
+    }
+    private fun onSelectFile(file: FileSystemEntry){
+        state = if (state.selectedFiles.contains(file)){
+            state.copy(selectedFiles = state.selectedFiles.minus(file))
+        }else{
+            state.copy(selectedFiles = state.selectedFiles.plus(file))
         }
     }
 }

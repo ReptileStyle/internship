@@ -10,6 +10,7 @@ import com.kuzevanov.filemanager.core.UiEvent
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.model.DirectoryEntry
 import com.kuzevanov.filemanager.fileSystem.model.DirectoryInfo
+import com.kuzevanov.filemanager.ui.common.model.BottomBarWhileSelectingFilesEvent
 import com.kuzevanov.filemanager.ui.common.model.SortingMode
 import com.kuzevanov.filemanager.ui.common.model.SortingOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -86,8 +87,8 @@ class DirectoryScreenViewModel @Inject constructor(
             is DirectoryScreenEvent.OnSelectFile -> {
                 onSelectFile(event.file)
             }
-            DirectoryScreenEvent.OnShareSelectedFilesClick -> {
-                shareSelectedFiles()
+            is DirectoryScreenEvent.OnBottomBarWhileSelectingFilesEvent ->{
+                onBottomBarWhileSelectingFilesEvent(event.bottomBarWhileSelectingFilesEvent)
             }
         }
     }
@@ -171,14 +172,21 @@ class DirectoryScreenViewModel @Inject constructor(
 
     private fun shareSelectedFiles(){
         try {
-            state = state.copy(selectedFiles = listOf())
             fileSystem.shareFiles(state.selectedFiles.map { it.fileSystemEntry })
+            state = state.copy(selectedFiles = listOf())
         }catch (e:Exception){
             viewModelScope.launch {
                 _uiEvent.send(UiEvent.Message(e.message ?: "error"))
             }
         }
 
+    }
+    private fun onBottomBarWhileSelectingFilesEvent(event:BottomBarWhileSelectingFilesEvent){
+        when(event){
+            BottomBarWhileSelectingFilesEvent.OnShareFiles -> {
+                shareSelectedFiles()
+            }
+        }
     }
 
     override fun onCleared() {

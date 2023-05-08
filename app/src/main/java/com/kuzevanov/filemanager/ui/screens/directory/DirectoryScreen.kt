@@ -2,19 +2,13 @@ package com.kuzevanov.filemanager.ui.screens.directory
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -24,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuzevanov.filemanager.core.UiEvent
+import com.kuzevanov.filemanager.ui.common.BottomBarWhileSelectingFiles
 import com.kuzevanov.filemanager.ui.common.TreeDropDownMenu
 import com.kuzevanov.filemanager.ui.screens.directory.component.DropdownMenuTree
 import com.kuzevanov.filemanager.ui.screens.directory.component.FileComponent
@@ -93,25 +88,10 @@ fun DirectoryScreen(
             )
         },
         bottomBar = {
-            AnimatedVisibility(
-                visible = state.selectedFiles.isNotEmpty(),
-                enter = expandVertically(expandFrom = Alignment.Bottom),
-                exit = shrinkVertically(shrinkTowards = Alignment.Bottom)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colors.background)
-                        .height(50.dp), horizontalArrangement = Arrangement.Center
-                ) {
-                    IconButton(onClick = { onEvent(DirectoryScreenEvent.OnShareSelectedFilesClick) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Share,
-                            contentDescription = "Share selected files"
-                        )
-                    }
-                }
-            }
+            BottomBarWhileSelectingFiles(
+                isVisible = state.selectedFiles.isNotEmpty(),
+                onEvent = {onEvent(DirectoryScreenEvent.OnBottomBarWhileSelectingFilesEvent(it))}
+            )
         }
     ) {
         LazyColumn(modifier = Modifier.padding(it)) {
