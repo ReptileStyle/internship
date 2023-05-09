@@ -11,5 +11,6 @@ data class DirectoryScreenState(
     val directory: DirectoryInfo? = null,
     val sortingOrder: SortingOrder = SortingOrder.Ascending,
     val sortingMode:SortingMode = SortingMode.ByName,
-    val isModifiedList:List<String> = listOf()
+    val isModifiedList:List<String> = listOf(),
+    val isRefreshing:Boolean = false
 )

@@ -46,9 +46,8 @@ fun SetupNavGraph(
             LaunchedEffect(key1 = true){
                 Log.d("navigation","LaunchedEffectDir")
                 coroutineScope.launch {
-                    var location = it.arguments?.getString("location") ?: defaultLocation
-                    viewModel.path = location
-                    Log.d("navigation", viewModel.path)
+                    val location = it.arguments?.getString("location") ?: defaultLocation
+                    viewModel.setPath(location)
                 }
             }
             DirectoryScreen(

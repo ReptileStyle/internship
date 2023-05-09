@@ -14,4 +14,5 @@ sealed class DirectoryScreenEvent {
 
     data class OnBottomBarWhileSelectingFilesEvent(
         val bottomBarWhileSelectingFilesEvent: BottomBarWhileSelectingFilesEvent):DirectoryScreenEvent()
+    object OnRefresh:DirectoryScreenEvent()
 }

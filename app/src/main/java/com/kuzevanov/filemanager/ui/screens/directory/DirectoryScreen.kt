@@ -8,7 +8,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -57,7 +61,7 @@ fun DirectoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        state.directory?.name ?: "Error directory",
+                        state.directory?.name ?: "",
                         fontSize = 24.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -94,20 +98,34 @@ fun DirectoryScreen(
             )
         }
     ) {
-        LazyColumn(modifier = Modifier.padding(it)) {
-            items(state.files) { file ->
-                FileComponent(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    file = file,
-                    onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) },
-                    onLongClick = { onEvent(DirectoryScreenEvent.OnSelectFile(file)) },
-                    isSelected = rememberUpdatedState(newValue = state.selectedFiles.contains(file)).value,
-                    isCheckboxVisible = state.selectedFiles.isNotEmpty(),
-                    isModified = state.isModifiedList.contains(file.path)
-                )
+        val refreshState = rememberPullRefreshState(
+            refreshing = state.isRefreshing,
+            onRefresh = { onEvent(DirectoryScreenEvent.OnRefresh) })
+        Box(modifier = Modifier.pullRefresh(refreshState)) {
+            LazyColumn(modifier = Modifier.padding(it).fillMaxSize()) {
+                items(state.files) { file ->
+                    FileComponent(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        file = file,
+                        onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) },
+                        onLongClick = { onEvent(DirectoryScreenEvent.OnSelectFile(file)) },
+                        isSelected = rememberUpdatedState(
+                            newValue = state.selectedFiles.contains(
+                                file
+                            )
+                        ).value,
+                        isCheckboxVisible = state.selectedFiles.isNotEmpty(),
+                        isModified = state.isModifiedList.contains(file.path)
+                    )
+                }
             }
+            PullRefreshIndicator(
+                refreshing = state.isRefreshing, state = refreshState, modifier = Modifier.align(
+                    Alignment.TopCenter
+                )
+            )
         }
     }
 }

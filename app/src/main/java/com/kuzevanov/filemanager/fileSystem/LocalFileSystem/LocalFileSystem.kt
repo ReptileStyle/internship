@@ -69,6 +69,6 @@ class LocalFileSystem @Inject constructor(
 
     suspend fun refreshRecentFiles()=repository.refreshMostImportantDirs()
 
-    suspend fun getChangedFileInDir(path:String) = repository.getChangedFileInDir(path)
+    suspend fun getChangedFileInDir(path:String,force:Boolean = false) = repository.getChangedFileInDir(path,force)
 }
 

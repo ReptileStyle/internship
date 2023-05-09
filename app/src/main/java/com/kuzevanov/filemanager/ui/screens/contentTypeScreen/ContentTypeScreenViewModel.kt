@@ -22,7 +22,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ContentTypeScreenViewModel @Inject constructor(
-    private val resolver: ContentResolver,
     private val fileSystem: LocalFileSystem
 ) : ViewModel() {
     var state by mutableStateOf(ContentTypeScreenState())
@@ -40,6 +39,7 @@ class ContentTypeScreenViewModel @Inject constructor(
                     field = value
                     state = state.copy(type = value)
                     refreshData()
+
                 }
             }
         }
@@ -58,9 +58,8 @@ class ContentTypeScreenViewModel @Inject constructor(
 
     private fun refreshData() {
         coroutineScopeIO.launch {
-            state = state.copy(isRefreshing = true)
+            state = state.copy(isRefreshing = true, dataList = listOf())
             state = state.copy(
-                isRefreshing = false,
                 dataList = fileSystem.getAllByType(state.type).map {
                     //val file = resolver.openAssetFileDescriptor(it.toUri(),"r")
                     val file = File(it)
@@ -72,6 +71,7 @@ class ContentTypeScreenViewModel @Inject constructor(
                     )
                 }
             )
+            state = state.copy(isRefreshing = false)
         }
     }
 

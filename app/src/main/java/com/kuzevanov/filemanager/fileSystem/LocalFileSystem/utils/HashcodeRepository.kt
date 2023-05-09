@@ -56,7 +56,7 @@ class HashcodeRepository @Inject constructor(
      * changes to uses ASAP, this coroutineScope is busy at launch, so not good idea to use it
      * returns flow of file paths, that have been changed, has no affect on database
      */
-    suspend fun getChangedFileInDir(path: String): Flow<String> {
+    suspend fun getChangedFileInDir(path: String, force: Boolean = false): Flow<String> {
         return flow {
             val file = File(path)
             val storedHashesForChildren = getAllHashcodesInDir(file.absolutePath)
@@ -65,22 +65,36 @@ class HashcodeRepository @Inject constructor(
                     if (hashcode.isChanged) emit(hashcode.path)
                 }
             }
-            file.listFiles()?.forEach { childFile ->
+            file.listFiles()?.sortedBy { -it.lastModified() }?.forEach { childFile ->
                 if (!childFile.isDirectory) {
                     val storedHash =
                         storedHashesForChildren.firstOrNull { it.path == childFile.absolutePath }
                     if (storedHash != null) {
                         Log.d("files", "${storedHash.hashingLaunchID}, $currentLaunchID")
-                        if (storedHash.hashingLaunchID != currentLaunchID && !MD5.checkMD5(
-                                storedHash.hashcode,
-                                childFile
-                            )
-                        ) {
-                            emit(childFile.absolutePath)
+                        if (!force) {
+                            if (storedHash.hashingLaunchID != currentLaunchID && !MD5.checkMD5(
+                                    storedHash.hashcode,
+                                    childFile
+                                )
+                            ) {
+                                emit(childFile.absolutePath)
+                                recentFileDAO.insertRecent(RecentFile(childFile.absolutePath,System.currentTimeMillis()))
+                            } else {
+                                if (storedHash.isChanged) {
+                                    emit(childFile.absolutePath)
+                                    recentFileDAO.insertRecent(RecentFile(childFile.absolutePath,System.currentTimeMillis()))
+                                }
+                            }
+                        } else {
+                            if (!MD5.checkMD5(storedHash.hashcode, childFile)) {
+                                emit(childFile.absolutePath)
+                                recentFileDAO.insertRecent(RecentFile(childFile.absolutePath,System.currentTimeMillis()))
+                            }
                         }
                     } else {
                         if (childFile.lastModified() >= installTime) {
                             emit(childFile.absolutePath)
+                            recentFileDAO.insertRecent(RecentFile(childFile.absolutePath,System.currentTimeMillis()))
                         }
                     }
                 }
@@ -88,18 +102,19 @@ class HashcodeRepository @Inject constructor(
         }
     }
 
-//    var mostImportantDirsJob: Job? = null
-    var checkingAllFilesJob:Job =Job()
+    //    var mostImportantDirsJob: Job? = null
+    var checkingAllFilesJob: Job = Job()
 
     /**
      * we pause main hashing, begin hashing in most important dirs, than resume main hashing.
      * anyway it is pretty slow, but good enough
      */
-    suspend fun refreshMostImportantDirs(){
+    suspend fun refreshMostImportantDirs() {
         checkingAllFilesJob.cancel()
         checkMostImportantDirs(true)
         startCheckingFiles()
     }
+
     suspend private fun checkMostImportantDirs(force: Boolean) {
         importantDirs.forEach {
             val superJob = Job()
@@ -126,7 +141,7 @@ class HashcodeRepository @Inject constructor(
     fun startCheckingFiles() {
         Log.d("files", Runtime.getRuntime().availableProcessors().toString())
         val rootFolder = Environment.getExternalStorageDirectory()
-        checkingAllFilesJob=CoroutineScope(Dispatchers.Default).launch {
+        checkingAllFilesJob = CoroutineScope(Dispatchers.Default).launch {
             val job0 = coroutineScope.launch(checkingAllFilesJob) {
                 checkMostImportantDirs(false)
             }
@@ -237,7 +252,7 @@ class HashcodeRepository @Inject constructor(
         conditionToSkip: (File) -> Boolean,
         job: Job,
         shouldAddToRecent: Boolean,
-        force:Boolean
+        force: Boolean
     ) {
         if (conditionToSkip(file)) return
         val listFiles = file.listFiles()
@@ -249,7 +264,7 @@ class HashcodeRepository @Inject constructor(
                         if (!file.isDirectory && !file.isHidden) {
                             val storedHash =
                                 storedHashForChildren.find { it.path == file.absolutePath }
-                            if(!force && storedHash?.hashingLaunchID==currentLaunchID) return@launch
+                            if (!force && storedHash?.hashingLaunchID == currentLaunchID) return@launch
                             val hash = MD5.calculateMD5(file)
                             if (storedHash != null) {
                                 if (storedHash.hashcode == hash) {
@@ -286,7 +301,8 @@ class HashcodeRepository @Inject constructor(
                                         file.absolutePath,
                                         hash,
                                         depth = file.absolutePath.count { it == '/' },
-                                        hashingLaunchID = currentLaunchID
+                                        hashingLaunchID = currentLaunchID,
+                                        isChanged = file.lastModified()>installTime
                                     ),
                                 )
                                 if (shouldAddToRecent && file.lastModified() > installTime) {
@@ -299,12 +315,12 @@ class HashcodeRepository @Inject constructor(
                                 }
                             }
                         }
-                       Log.d("files", file.absolutePath)
+//                        Log.d("files", file.absolutePath)
                     }
                 }
             }
             listFiles.forEach {
-                getHashesOfAllChildren(it, conditionToSkip, job, shouldAddToRecent,force)
+                getHashesOfAllChildren(it, conditionToSkip, job, shouldAddToRecent, force)
             }
         }
     }

@@ -31,38 +31,37 @@ class DirectoryScreenViewModel @Inject constructor(
 
     val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
     var fileCheckingJob: Job? = null
+    private val refreshingJob:Job? = null
 
 
-    var path: String = ""
-        set(value) {
-            field = value
-            fileCheckingJob?.cancel()
-//            coroutineScopeIO.cancel()
-            try {
-                coroutineScopeIO.launch {
-                    Log.d(TAG,"ioscope")
-                    val directory = DirectoryInfo(fileSystem.getEntry(value))
-                    state = state.copy(directory = directory)
-                    val job1 = coroutineScopeIO.launch {
-                        val files = directory.files
-                        state = state.copy(
-                            files = files.sortedBy { it.name.lowercase() })
-                    }
-                    fileCheckingJob= coroutineScopeIO.launch {
-                        job1.join()//preventing race condition
-                        val map = fileSystem.getChangedFileInDir(directory.path).collect{
-                            state = state.copy(isModifiedList = state.isModifiedList.plus(it))
-                        }
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.d(TAG, "${e.message}")
-            }
-        }
 
     init {
         fileSystem.load()
+    }
+    fun setPath(path:String,forceRefresh:Boolean = false){
+        fileCheckingJob?.cancel()
+//            coroutineScopeIO.cancel()
+        try {
+            coroutineScopeIO.launch {
+                Log.d(TAG,"ioscope")
+                val directory = DirectoryInfo(fileSystem.getEntry(path))
+                state = state.copy(directory = directory)
+                val job1 = coroutineScopeIO.launch {
+                    val files = directory.files
+                    state = state.copy(
+                        files = files.sortedBy { it.name.lowercase() }, isRefreshing = false)
+                }
+                fileCheckingJob= coroutineScopeIO.launch {
+                    job1.join()//preventing race condition
+                    fileSystem.getChangedFileInDir(directory.path,force = forceRefresh).collect{
+                        state = state.copy(isModifiedList = state.isModifiedList.plus(it))
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.d(TAG, "${e.message}")
+        }
     }
 
 
@@ -92,6 +91,9 @@ class DirectoryScreenViewModel @Inject constructor(
             is DirectoryScreenEvent.OnBottomBarWhileSelectingFilesEvent ->{
                 onBottomBarWhileSelectingFilesEvent(event.bottomBarWhileSelectingFilesEvent)
             }
+            DirectoryScreenEvent.OnRefresh -> {
+                refreshDirectory()
+            }
         }
     }
 
@@ -99,7 +101,8 @@ class DirectoryScreenViewModel @Inject constructor(
         try {
             Log.d(TAG, file.path)
             if(file.isDirectory) {
-                path = file.path
+                refreshingJob?.cancel() // don't need to refresh this dir anymore
+                setPath(file.path)
             }else{
                 file.open()
             }
@@ -161,7 +164,7 @@ class DirectoryScreenViewModel @Inject constructor(
         if(state.selectedFiles.isEmpty()) {
             val parent = state.directory?.getParent()
             if (parent?.path != "/storage/emulated" && parent != null) {
-                path = parent.path
+                setPath(parent.path)
             } else {
                 viewModelScope.launch {
                     _uiEvent.send(UiEvent.NavigateUp)
@@ -189,6 +192,12 @@ class DirectoryScreenViewModel @Inject constructor(
                 shareSelectedFiles()
             }
         }
+    }
+
+    private fun refreshDirectory(){
+        val path = state.directory?.path ?: ""
+        state= DirectoryScreenState(isRefreshing = true)
+        setPath(path,true)
     }
 
     override fun onCleared() {
