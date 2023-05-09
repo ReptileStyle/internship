@@ -11,4 +11,5 @@ sealed class HomeScreenEvent {
     data class OnBottomBarWhileSelectingFilesEvent(
         val bottomBarWhileSelectingFilesEvent: BottomBarWhileSelectingFilesEvent
     ): HomeScreenEvent()
+    object OnRefreshRecentFiles:HomeScreenEvent()
 }

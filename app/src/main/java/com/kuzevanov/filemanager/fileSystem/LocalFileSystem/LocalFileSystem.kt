@@ -67,6 +67,8 @@ class LocalFileSystem @Inject constructor(
     fun getRecentFiles() = recentFileDAO.getAllRecentFlow()
     fun dropOutdatedRecentFiles() = recentFileDAO.deleteOutdated()
 
+    suspend fun refreshRecentFiles()=repository.refreshMostImportantDirs()
+
     suspend fun getChangedFileInDir(path:String) = repository.getChangedFileInDir(path)
 }
 

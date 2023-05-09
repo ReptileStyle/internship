@@ -20,7 +20,6 @@ fun ContentTypeScreen(
 ) {
     val context = LocalContext.current
     LaunchedEffect(key1 = true) {
-        Log.d("contentType","conntentTypeScreen")
         eventFlow.collect { event ->
             when (event) {
                 is UiEvent.Message -> {
@@ -50,7 +49,6 @@ fun ContentTypeScreen(
 
         }
         SpecialFolderTypes.Images -> {
-            Log.d("asd","in images")
             ContentTypeImagesList(state = state,onEvent=onEvent)
         }
         SpecialFolderTypes.Music -> {

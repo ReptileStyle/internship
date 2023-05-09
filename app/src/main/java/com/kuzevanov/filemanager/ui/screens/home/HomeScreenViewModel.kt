@@ -14,12 +14,10 @@ import com.kuzevanov.filemanager.navigation.Route
 import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.common.model.BottomBarWhileSelectingFilesEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
@@ -33,6 +31,9 @@ class HomeScreenViewModel @Inject constructor(
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
+    var refreshingJob: Job? = null
 
     init {
         val availableMemory = getAvailableInternalMemorySize()
@@ -60,6 +61,14 @@ class HomeScreenViewModel @Inject constructor(
             }
             is HomeScreenEvent.OnBottomBarWhileSelectingFilesEvent -> {
                 onBottomBarWhileSelectingFilesEvent(event.bottomBarWhileSelectingFilesEvent)
+            }
+            HomeScreenEvent.OnRefreshRecentFiles ->{
+                refreshingJob?.cancel()
+                refreshingJob = coroutineScopeIO.launch {
+                    state=state.copy(isRefreshing = true)
+                    fileSystem.refreshRecentFiles()
+                    state=state.copy(isRefreshing = false)
+                }
             }
         }
     }
@@ -155,6 +164,11 @@ class HomeScreenViewModel @Inject constructor(
         }else{
             state.copy(selectedFiles = state.selectedFiles.plus(file))
         }
+    }
+
+    override fun onCleared() {
+        coroutineScopeIO.cancel()
+        super.onCleared()
     }
 }
 

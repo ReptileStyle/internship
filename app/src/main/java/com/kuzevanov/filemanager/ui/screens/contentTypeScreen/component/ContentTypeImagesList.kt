@@ -1,7 +1,6 @@
 package com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component
 
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +28,6 @@ fun ContentTypeImagesList(
     state: ContentTypeScreenState,
     onEvent: (ContentTypeScreenEvent) -> Unit
 ) {
-    Log.d("asd","in list")
     val refreshState = rememberPullRefreshState(
         refreshing = state.isRefreshing,
         onRefresh = { onEvent(ContentTypeScreenEvent.OnRefresh) })

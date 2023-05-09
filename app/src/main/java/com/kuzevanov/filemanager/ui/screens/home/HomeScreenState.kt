@@ -6,5 +6,6 @@ data class HomeScreenState(
     val totalInternalSpace:Long = -1L,
     val usedInternalSpace:Long = -1L,
     val resentFiles: List<FileSystemEntry> = listOf(),
-    val selectedFiles: List<FileSystemEntry> = listOf()
+    val selectedFiles: List<FileSystemEntry> = listOf(),
+    val isRefreshing:Boolean = false
 )

@@ -11,7 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.*
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -56,35 +60,54 @@ fun HomeScreen(
             }
         }
     }
-    Scaffold(bottomBar = {
-        BottomBarWhileSelectingFiles(
-            isVisible = state.selectedFiles.isNotEmpty(),
-            onEvent = {onEvent(HomeScreenEvent.OnBottomBarWhileSelectingFilesEvent(it))}
-        )
-    }) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .background(MaterialTheme.colors.background)
-                .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-        ) {
-            SearchBar(
-                modifier = Modifier,
-                onClick = { /* TODO */ }
+    val refreshState = rememberPullRefreshState(
+        refreshing = state.isRefreshing,
+        onRefresh = { onEvent(HomeScreenEvent.OnRefreshRecentFiles) })
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            BottomBarWhileSelectingFiles(
+                isVisible = state.selectedFiles.isNotEmpty(),
+                onEvent = { onEvent(HomeScreenEvent.OnBottomBarWhileSelectingFilesEvent(it)) }
             )
+        }) {
+        Box(modifier = Modifier.pullRefresh(refreshState)) {
+            LazyColumn() {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(it)
+                            .background(MaterialTheme.colors.background)
 
-            Spacer(modifier = Modifier.requiredHeight(32.dp))
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
 
-            UserStorageCards(
-                state = state,
-                onInternalStorageClick = { onEvent(HomeScreenEvent.OnInternalStorageClick) })
+                        ) {
 
-            Spacer(modifier = Modifier.requiredHeight(32.dp))
+                        SearchBar(
+                            modifier = Modifier,
+                            onClick = { /* TODO */ }
+                        )
 
-            UserCommonDataTypeTiles(onEvent = onEvent) { layoutPosition ->
-                sheetTopOffset = layoutPosition
+                        Spacer(modifier = Modifier.requiredHeight(32.dp))
+
+                        UserStorageCards(
+                            state = state,
+                            onInternalStorageClick = { onEvent(HomeScreenEvent.OnInternalStorageClick) })
+
+                        Spacer(modifier = Modifier.requiredHeight(32.dp))
+
+                        UserCommonDataTypeTiles(onEvent = onEvent) { layoutPosition ->
+                            sheetTopOffset = layoutPosition
+                        }
+                    }
+                }
             }
+            PullRefreshIndicator(
+                refreshing = state.isRefreshing, state = refreshState, modifier = Modifier.align(
+                    Alignment.TopCenter
+                )
+            )
         }
         BackHandler(state.selectedFiles.isNotEmpty()) {
             onEvent(HomeScreenEvent.OnBackClick)
@@ -98,7 +121,8 @@ fun HomeScreen(
             val sheetHalfOpenedY = sheetPeekY / 2
             val sheetExpandedY = 0.0f
 
-            val swipeableState = rememberSwipeableState(initialValue = RecentFileSheetState.INITIAL)
+            val swipeableState =
+                rememberSwipeableState(initialValue = RecentFileSheetState.INITIAL)
 
             val recentSheetSwipeAnchors = mapOf(
                 sheetPeekY to RecentFileSheetState.INITIAL,
