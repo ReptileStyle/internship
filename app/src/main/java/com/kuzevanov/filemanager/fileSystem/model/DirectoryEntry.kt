@@ -11,7 +11,6 @@ data class DirectoryEntry(val fileSystemEntry: FileSystemEntry, val name: String
     val lastModified = fileSystemEntry.lastModified
     val size = fileSystemEntry.size
     val countChildren = fileSystemEntry.countChildren
-    fun isModified() = directoryInfo.isModifiedMap[path]?:false
     fun delete(recursive: Boolean = false) = fileSystemEntry.delete(recursive)
 
     fun open() = fileSystemEntry.open()

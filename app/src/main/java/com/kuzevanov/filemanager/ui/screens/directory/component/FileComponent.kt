@@ -29,6 +29,7 @@ fun FileComponent(
     file:DirectoryEntry,
     onClick:()->Unit,
     onLongClick:()->Unit,
+    isModified:Boolean,
     isSelected:Boolean,
     isCheckboxVisible:Boolean
 ) {
@@ -39,10 +40,6 @@ fun FileComponent(
             onLongClick = onLongClick
         )) {
         Box(contentAlignment = Alignment.Center) {
-            var isModifiedState by remember { mutableStateOf(false) }
-            LaunchedEffect(key1 = file) {
-                isModifiedState = file.isModified()
-            }
             Icon(
                 imageVector = file.iconInfo().first,
                 contentDescription = null,
@@ -52,7 +49,7 @@ fun FileComponent(
                     alpha = 0.85f
                 )
             )
-            if (file.isModified()) {
+            if (isModified) {
                 Icon(
                     imageVector = Icons.Filled.Info,
                     contentDescription = null,

@@ -16,17 +16,6 @@ data class DirectoryInfo(val fileSystemEntry: FileSystemEntry) {
         return DirectoryEntry(fileSystemEntry.getParent() ?: return null, "..", directoryInfo = this)
     }
 
-    var isModifiedMap:Map<String,Boolean> = mapOf()
-    suspend fun getIsModifiedMapJob():Map<String,Boolean>{
-        try {
-            isModifiedMap = fileSystemEntry.checkIfChildrenModified.invoke(path)
-//            Log.d("files5",isModifiedMap.toString())
-        }catch (e:Exception){
-//            Log.d("files5",e.toString())
-        }
-
-        return isModifiedMap
-    }
 
 
 }

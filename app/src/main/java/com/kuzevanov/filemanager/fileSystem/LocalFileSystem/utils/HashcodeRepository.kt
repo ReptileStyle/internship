@@ -1,6 +1,7 @@
 package com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils
 
 import android.content.Context
+import android.content.SharedPreferences
 
 import android.os.Build
 import android.os.Environment
@@ -11,6 +12,8 @@ import com.kuzevanov.filemanager.fileSystem.model.Hashcode
 import com.kuzevanov.filemanager.fileSystem.model.RecentFile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.io.File
 import javax.inject.Inject
 
@@ -18,8 +21,12 @@ class HashcodeRepository @Inject constructor(
     @ApplicationContext
     context:Context,
     private val hashcodeDAO: HashcodeDAO,
-    private val recentFileDAO: RecentFileDAO) {
-    val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val recentFileDAO: RecentFileDAO,
+    private val sharedPreferences: SharedPreferences
+    ) {
+    //dont want to use too much power, sore limited_parellelism=cores/2
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val coroutineScope = CoroutineScope(Dispatchers.IO.limitedParallelism(Runtime.getRuntime().availableProcessors()/2))
 
     val installTime = context.packageManager.getPackageInfo("com.kuzevanov.filemanager",0).lastUpdateTime
 
@@ -31,6 +38,50 @@ class HashcodeRepository @Inject constructor(
 
     suspend fun insertRecent(recentFile: RecentFile) = recentFileDAO.insertRecent(recentFile)
 
+
+    private val currentLaunchID = sharedPreferences.getInt("currentLaunchId",0)+1
+    init {
+        sharedPreferences.edit().putInt("currentLaunchId",currentLaunchID).apply()
+    }
+
+    /**
+     * this fun is suspend, so it uses different coroutineScope than this class coroutineScope.
+     * because it must be cancelled if user leaves directory, also it should use more power to display
+     * changes to uses ASAP, this coroutineScope is busy at launch, so not good idea to use it
+     * returns flow of file paths, that have been changed, has no affect on database
+     */
+    suspend fun getChangedFileInDir(path:String): Flow<String> {
+        return flow {
+            val file = File(path)
+            val storedHashesForChildren = getAllHashcodesInDir(file.absolutePath)
+            storedHashesForChildren.forEach {hashcode ->
+                if(hashcode.hashingLaunchID==currentLaunchID){
+                    if(hashcode.isChanged) emit(hashcode.path)
+                }
+            }
+            file.listFiles()?.forEach { childFile ->
+                if(!childFile.isDirectory) {
+                    val storedHash =
+                        storedHashesForChildren.firstOrNull { it.path == childFile.absolutePath }
+                    if (storedHash != null) {
+                        Log.d("files", "${storedHash.hashingLaunchID}, $currentLaunchID")
+                        if (storedHash.hashingLaunchID != currentLaunchID && !MD5.checkMD5(
+                                storedHash.hashcode,
+                                childFile
+                            )
+                        ) {
+                            emit(childFile.absolutePath)
+                        }
+                    } else {
+                        if (childFile.lastModified() >= installTime) {
+                            emit(childFile.absolutePath)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * optimization:
      * 1) check most important folders and add new/changed files to RecentFile list
@@ -38,7 +89,9 @@ class HashcodeRepository @Inject constructor(
      * 2) check cache dirs, do not add to recent files
      * 3) check android dir
      */
+
     fun startCheckingFiles() {
+        Log.d("files",Runtime.getRuntime().availableProcessors().toString())
         val rootFolder = Environment.getExternalStorageDirectory()
         val job0 = coroutineScope.launch {
             importantDirs.forEach {
@@ -57,6 +110,7 @@ class HashcodeRepository @Inject constructor(
         val job1 = coroutineScope.launch {
             val superJob = Job()
             job0.join()
+//            Log.d("files2","job0 joined")
             getHashesOfAllChildren(
                 rootFolder,
                 conditionToSkip = { file ->
@@ -165,21 +219,23 @@ class HashcodeRepository @Inject constructor(
                                 storedHashForChildren.find { it.path == file.absolutePath }
                             if (storedHash != null) {
                                 if(storedHash.hashcode==hash){
-                                    if(storedHash.isChanged){
-                                        updateHashcode(
-                                            hashcode = Hashcode(
-                                                file.absolutePath,
-                                                hash,
-                                                false
-                                            )
+
+                                    updateHashcode(
+                                        hashcode = Hashcode(
+                                            file.absolutePath,
+                                            hash,
+                                            false,
+                                            hashingLaunchID = currentLaunchID
                                         )
-                                    }
+                                    )
+
                                 }else{
                                     updateHashcode(
                                         hashcode = Hashcode(
                                             file.absolutePath,
                                             hash,
-                                            true
+                                            true,
+                                            hashingLaunchID = currentLaunchID
                                         )
                                     )
                                     if(shouldAddToRecent){
@@ -193,7 +249,9 @@ class HashcodeRepository @Inject constructor(
                                     hashcode = Hashcode(
                                         file.absolutePath,
                                         hash,
-                                        depth = file.absolutePath.count { it == '/' })
+                                        depth = file.absolutePath.count { it == '/' },
+                                        hashingLaunchID = currentLaunchID
+                                    ),
                                 )
                                 if(shouldAddToRecent && file.lastModified()>installTime){
                                     insertRecent(RecentFile(path = file.absolutePath,date = System.currentTimeMillis()))

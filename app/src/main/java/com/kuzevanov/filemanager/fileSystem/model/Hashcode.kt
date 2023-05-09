@@ -11,5 +11,6 @@ data class Hashcode(
     @PrimaryKey val path: String = "",
     val hashcode: String = "",
     val isChanged: Boolean = false,//if this file was changed since last launch
-    val depth: Int = path.count { it == '/' }//amount of parent folders
+    val depth: Int = path.count { it == '/' },//amount of parent folders
+    val hashingLaunchID:Int = 0,//was hashed at this id of app launch
 ) : Parcelable

@@ -2,6 +2,7 @@ package com.kuzevanov.filemanager.di
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.HashcodeRepository
@@ -52,13 +53,23 @@ object AppModule {
     fun provideRecentFileDAO(database: FileSystemDatabase): RecentFileDAO {
         return database.recentFileDao()
     }
+    @Singleton
+    @Provides
+    fun provideSharedPreferences(
+        @ApplicationContext
+        context: Context
+    ):SharedPreferences{
+        return context.getSharedPreferences("sharedName",Context.MODE_PRIVATE)
+    }
 
     @Singleton
     @Provides
     fun provideHashcodeRepository(
         @ApplicationContext context: Context,
         dao:HashcodeDAO,
-        recentFileDAO: RecentFileDAO):HashcodeRepository{
-        return HashcodeRepository(context, dao,recentFileDAO)
+        recentFileDAO: RecentFileDAO,
+    sharedPreferences: SharedPreferences
+        ):HashcodeRepository{
+        return HashcodeRepository(context, dao,recentFileDAO,sharedPreferences)
     }
 }

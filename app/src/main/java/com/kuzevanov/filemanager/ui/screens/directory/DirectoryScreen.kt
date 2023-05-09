@@ -104,7 +104,8 @@ fun DirectoryScreen(
                     onClick = { onEvent(DirectoryScreenEvent.OnFileClick(file)) },
                     onLongClick = { onEvent(DirectoryScreenEvent.OnSelectFile(file)) },
                     isSelected = rememberUpdatedState(newValue = state.selectedFiles.contains(file)).value,
-                    isCheckboxVisible = state.selectedFiles.isNotEmpty()
+                    isCheckboxVisible = state.selectedFiles.isNotEmpty(),
+                    isModified = state.isModifiedList.contains(file.path)
                 )
             }
         }

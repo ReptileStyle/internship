@@ -14,12 +14,9 @@ import com.kuzevanov.filemanager.ui.common.model.BottomBarWhileSelectingFilesEve
 import com.kuzevanov.filemanager.ui.common.model.SortingMode
 import com.kuzevanov.filemanager.ui.common.model.SortingOrder
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,10 +30,14 @@ class DirectoryScreenViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
+    var fileCheckingJob: Job? = null
+
 
     var path: String = ""
         set(value) {
             field = value
+            fileCheckingJob?.cancel()
+//            coroutineScopeIO.cancel()
             try {
                 coroutineScopeIO.launch {
                     Log.d(TAG,"ioscope")
@@ -47,10 +48,11 @@ class DirectoryScreenViewModel @Inject constructor(
                         state = state.copy(
                             files = files.sortedBy { it.name.lowercase() })
                     }
-                    coroutineScopeIO.launch {
-                        val map = directory.getIsModifiedMapJob()
+                    fileCheckingJob= coroutineScopeIO.launch {
                         job1.join()//preventing race condition
-                        state = state.copy(isModifiedMap = map )
+                        val map = fileSystem.getChangedFileInDir(directory.path).collect{
+                            state = state.copy(isModifiedList = state.isModifiedList.plus(it))
+                        }
                     }
                 }
 
