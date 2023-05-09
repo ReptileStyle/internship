@@ -31,37 +31,40 @@ class DirectoryScreenViewModel @Inject constructor(
 
     val coroutineScopeIO = CoroutineScope(Dispatchers.IO)
     var fileCheckingJob: Job? = null
-    private val refreshingJob:Job? = null
-
+    private val refreshingJob: Job? = null
 
 
     init {
         fileSystem.load()
     }
-    fun setPath(path:String,forceRefresh:Boolean = false){
+
+    fun setPath(path: String, forceRefresh: Boolean = false) {
         fileCheckingJob?.cancel()
 //            coroutineScopeIO.cancel()
-        try {
-            coroutineScopeIO.launch {
-                Log.d(TAG,"ioscope")
+
+        coroutineScopeIO.launch {
+            try {
+                Log.d(TAG, "ioscope")
                 val directory = DirectoryInfo(fileSystem.getEntry(path))
                 state = state.copy(directory = directory)
                 val job1 = coroutineScopeIO.launch {
                     val files = directory.files
                     state = state.copy(
-                        files = files.sortedBy { it.name.lowercase() }, isRefreshing = false)
+                        files = files.sortedBy { it.name.lowercase() }, isRefreshing = false
+                    )
                 }
-                fileCheckingJob= coroutineScopeIO.launch {
+                fileCheckingJob = coroutineScopeIO.launch {
                     job1.join()//preventing race condition
-                    fileSystem.getChangedFileInDir(directory.path,force = forceRefresh).collect{
+                    fileSystem.getChangedFileInDir(directory.path, force = forceRefresh).collect {
                         state = state.copy(isModifiedList = state.isModifiedList.plus(it))
                     }
                 }
+            } catch (e: Exception) {
+                _uiEvent.send(UiEvent.Message(e.message?:"Something went wrong"))
             }
-
-        } catch (e: Exception) {
-            Log.d(TAG, "${e.message}")
         }
+
+
     }
 
 
@@ -74,7 +77,7 @@ class DirectoryScreenViewModel @Inject constructor(
                 onBackButtonPress()
             }
             is DirectoryScreenEvent.OnDropdownMenuItemClick -> {
-                Log.d(TAG,state.toString())
+                Log.d(TAG, state.toString())
                 val event2 = event.item.event
                 if (event2 != null) {
                     if (event2 is SortingMode) {
@@ -88,7 +91,7 @@ class DirectoryScreenViewModel @Inject constructor(
             is DirectoryScreenEvent.OnSelectFile -> {
                 onSelectFile(event.file)
             }
-            is DirectoryScreenEvent.OnBottomBarWhileSelectingFilesEvent ->{
+            is DirectoryScreenEvent.OnBottomBarWhileSelectingFilesEvent -> {
                 onBottomBarWhileSelectingFilesEvent(event.bottomBarWhileSelectingFilesEvent)
             }
             DirectoryScreenEvent.OnRefresh -> {
@@ -100,10 +103,10 @@ class DirectoryScreenViewModel @Inject constructor(
     private fun openFile(file: DirectoryEntry) {
         try {
             Log.d(TAG, file.path)
-            if(file.isDirectory) {
+            if (file.isDirectory) {
                 refreshingJob?.cancel() // don't need to refresh this dir anymore
                 setPath(file.path)
-            }else{
+            } else {
                 file.open()
             }
 
@@ -127,7 +130,7 @@ class DirectoryScreenViewModel @Inject constructor(
                 val maxSize =
                     state.files.filter { !it.isDirectory }.maxByOrNull { it.size }?.size ?: 1L
                 state = state.copy(
-                    files = state.files.sortedBy { if (it.isDirectory) it.countChildren.toLong() else -(maxSize - it.size +1) }
+                    files = state.files.sortedBy { if (it.isDirectory) it.countChildren.toLong() else -(maxSize - it.size + 1) }
                         .reversed(!isAscending)
                 )
             }
@@ -152,16 +155,16 @@ class DirectoryScreenViewModel @Inject constructor(
         }
     }
 
-    private fun onSelectFile(file: DirectoryEntry){
-        state = if (state.selectedFiles.contains(file)){
+    private fun onSelectFile(file: DirectoryEntry) {
+        state = if (state.selectedFiles.contains(file)) {
             state.copy(selectedFiles = state.selectedFiles.minus(file))
-        }else{
+        } else {
             state.copy(selectedFiles = state.selectedFiles.plus(file))
         }
     }
 
-    private fun onBackButtonPress(){
-        if(state.selectedFiles.isEmpty()) {
+    private fun onBackButtonPress() {
+        if (state.selectedFiles.isEmpty()) {
             val parent = state.directory?.getParent()
             if (parent?.path != "/storage/emulated" && parent != null) {
                 setPath(parent.path)
@@ -170,24 +173,25 @@ class DirectoryScreenViewModel @Inject constructor(
                     _uiEvent.send(UiEvent.NavigateUp)
                 }
             }
-        }else{
-            state=state.copy(selectedFiles = listOf())
+        } else {
+            state = state.copy(selectedFiles = listOf())
         }
     }
 
-    private fun shareSelectedFiles(){
+    private fun shareSelectedFiles() {
         try {
             fileSystem.shareFiles(state.selectedFiles.map { it.fileSystemEntry })
             state = state.copy(selectedFiles = listOf())
-        }catch (e:Exception){
+        } catch (e: Exception) {
             viewModelScope.launch {
                 _uiEvent.send(UiEvent.Message(e.message ?: "error"))
             }
         }
 
     }
-    private fun onBottomBarWhileSelectingFilesEvent(event:BottomBarWhileSelectingFilesEvent){
-        when(event){
+
+    private fun onBottomBarWhileSelectingFilesEvent(event: BottomBarWhileSelectingFilesEvent) {
+        when (event) {
             BottomBarWhileSelectingFilesEvent.OnShareFiles -> {
                 shareSelectedFiles()
             }
@@ -196,11 +200,12 @@ class DirectoryScreenViewModel @Inject constructor(
             }
         }
     }
-    private fun deleteSelectedFiles(){
-        val failedToDeleteList:MutableList<DirectoryEntry> = mutableListOf()
-        val successToDeleteList:MutableList<DirectoryEntry> = mutableListOf()
+
+    private fun deleteSelectedFiles() {
+        val failedToDeleteList: MutableList<DirectoryEntry> = mutableListOf()
+        val successToDeleteList: MutableList<DirectoryEntry> = mutableListOf()
         state.selectedFiles.forEach {
-            if(!it.delete(true))
+            if (!it.delete(true))
                 failedToDeleteList.add(it)
             else
                 successToDeleteList.add(it)
@@ -209,19 +214,19 @@ class DirectoryScreenViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             fileSystem.dropOutdatedRecentFiles()
         }
-        if(failedToDeleteList.isNotEmpty()) {
+        if (failedToDeleteList.isNotEmpty()) {
             viewModelScope.launch {
                 _uiEvent.send(UiEvent.Message("failed: ${failedToDeleteList.joinToString(", ")}"))
             }
         }
-        state=state.copy(files = state.files.minus(successToDeleteList))
+        state = state.copy(files = state.files.minus(successToDeleteList))
 //        refreshDirectory()
     }
 
-    private fun refreshDirectory(){
+    private fun refreshDirectory() {
         val path = state.directory?.path ?: ""
-        state= DirectoryScreenState(isRefreshing = true)
-        setPath(path,true)
+        state = DirectoryScreenState(isRefreshing = true)
+        setPath(path, true)
     }
 
     override fun onCleared() {

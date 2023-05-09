@@ -13,34 +13,38 @@ import java.io.File
 
 @Composable
 fun DirectoryEntry.iconInfo(): Pair<ImageVector, String> {
+    val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)
     return if (this.isDirectory) { // Folders
         Icons.Filled.Folder to "Folder"
     } else { // Otherwise, check the mime type
-        mimeTypeIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)]
-            ?: mimeTypeCustomIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)].let{
+        mimeTypeIconMap[mime]
+            ?: mimeTypeCustomIconMap[mime].let{
                 if(it!=null){
                     Pair(ImageVector.vectorResource(id = it.first),it.second)
                 }else{
                     null
                 }
             }
+            ?: getGeneralContentIcon(mime)
             ?: (Icons.Filled.QuestionMark to "Unknown") // If an unrecognized mime type, resort to "Unknown"
     }
 }
 
 @Composable
 fun File.iconInfo(): Pair<ImageVector, String> {
+    val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)
     return if (this.isDirectory) { // Folders
         Icons.Filled.Folder to "Folder"
     } else { // Otherwise, check the mime type
-        mimeTypeIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)]
-            ?: mimeTypeCustomIconMap[MimeTypeMap.getSingleton().getMimeTypeFromExtension(this.extension)].let{
+        mimeTypeIconMap[mime]
+            ?: mimeTypeCustomIconMap[mime].let{
                 if(it!=null){
                     Pair(ImageVector.vectorResource(id = it.first),it.second)
                 }else{
                     null
                 }
             }
+            ?: getGeneralContentIcon(mime)
             ?: (Icons.Filled.QuestionMark to "Unknown") // If an unrecognized mime type, resort to "Unknown"
     }
 }
@@ -104,3 +108,13 @@ private val mimeTypeCustomIconMap = mapOf( //icon is too big
     "application/vnd.ms-excel.addin.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
     "application/vnd.ms-excel.sheet.binary.macroEnabled.12" to (R.drawable.excel_file_icon  to "excel document"),
 )
+
+private fun getGeneralContentIcon(mime:String?):Pair<ImageVector,String>?{
+    if(mime==null) return null
+    return when(mime.substringBefore('/')){
+        "image"-> Icons.Filled.Image to "Image file"
+        "audio"-> Icons.Filled.AudioFile to "Audio file"
+        "video"-> Icons.Filled.VideoFile to "Video file"
+        else-> null
+    }
+}
