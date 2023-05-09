@@ -36,6 +36,9 @@ class HomeScreenViewModel @Inject constructor(
     var refreshingJob: Job? = null
 
     init {
+        coroutineScopeIO.launch {
+            fileSystem.dropOutdatedRecentFiles()
+        }
         val availableMemory = getAvailableInternalMemorySize()
         val totalMemory = getTotalInternalMemorySize()
         state = state.copy(
@@ -43,6 +46,7 @@ class HomeScreenViewModel @Inject constructor(
             usedInternalSpace = totalMemory-availableMemory
         )
         startCollectingRecentFiles()
+
     }
 
     fun onEvent(event:HomeScreenEvent){
@@ -65,6 +69,7 @@ class HomeScreenViewModel @Inject constructor(
             HomeScreenEvent.OnRefreshRecentFiles ->{
                 refreshingJob?.cancel()
                 refreshingJob = coroutineScopeIO.launch {
+                    fileSystem.dropOutdatedRecentFiles()
                     state=state.copy(isRefreshing = true)
                     fileSystem.refreshRecentFiles()
                     state=state.copy(isRefreshing = false)
@@ -156,6 +161,9 @@ class HomeScreenViewModel @Inject constructor(
             BottomBarWhileSelectingFilesEvent.OnShareFiles -> {
                 shareSelectedFiles()
             }
+            BottomBarWhileSelectingFilesEvent.OnDeleteFiles -> {
+                deleteSelectedFiles()
+            }
         }
     }
     private fun onSelectFile(file: FileSystemEntry){
@@ -163,6 +171,23 @@ class HomeScreenViewModel @Inject constructor(
             state.copy(selectedFiles = state.selectedFiles.minus(file))
         }else{
             state.copy(selectedFiles = state.selectedFiles.plus(file))
+        }
+    }
+
+    private fun deleteSelectedFiles(){
+        val failedToDeleteList:MutableList<String> = mutableListOf()
+        state.selectedFiles.forEach {
+            if(!it.delete(true))
+                failedToDeleteList.add(it.name)
+        }
+        state = state.copy(selectedFiles = listOf())
+        CoroutineScope(Dispatchers.IO).launch {
+            fileSystem.dropOutdatedRecentFiles()
+        }
+        if(failedToDeleteList.isNotEmpty()) {
+            viewModelScope.launch {
+                _uiEvent.send(UiEvent.Message("failed: ${failedToDeleteList.joinToString(", ")}"))
+            }
         }
     }
 

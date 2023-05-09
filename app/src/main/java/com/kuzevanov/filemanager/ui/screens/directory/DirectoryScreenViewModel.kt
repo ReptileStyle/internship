@@ -191,7 +191,31 @@ class DirectoryScreenViewModel @Inject constructor(
             BottomBarWhileSelectingFilesEvent.OnShareFiles -> {
                 shareSelectedFiles()
             }
+            BottomBarWhileSelectingFilesEvent.OnDeleteFiles -> {
+                deleteSelectedFiles()
+            }
         }
+    }
+    private fun deleteSelectedFiles(){
+        val failedToDeleteList:MutableList<DirectoryEntry> = mutableListOf()
+        val successToDeleteList:MutableList<DirectoryEntry> = mutableListOf()
+        state.selectedFiles.forEach {
+            if(!it.delete(true))
+                failedToDeleteList.add(it)
+            else
+                successToDeleteList.add(it)
+        }
+        state = state.copy(selectedFiles = listOf())
+        CoroutineScope(Dispatchers.IO).launch {
+            fileSystem.dropOutdatedRecentFiles()
+        }
+        if(failedToDeleteList.isNotEmpty()) {
+            viewModelScope.launch {
+                _uiEvent.send(UiEvent.Message("failed: ${failedToDeleteList.joinToString(", ")}"))
+            }
+        }
+        state=state.copy(files = state.files.minus(successToDeleteList))
+//        refreshDirectory()
     }
 
     private fun refreshDirectory(){

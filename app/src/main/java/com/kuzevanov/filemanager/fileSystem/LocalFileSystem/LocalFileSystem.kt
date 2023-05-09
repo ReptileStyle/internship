@@ -65,7 +65,14 @@ class LocalFileSystem @Inject constructor(
     }
 
     fun getRecentFiles() = recentFileDAO.getAllRecentFlow()
-    fun dropOutdatedRecentFiles() = recentFileDAO.deleteOutdated()
+    fun dropOutdatedRecentFiles(){
+        val fileList = recentFileDAO.getAllRecent()
+        val newFileList = fileList.filter {
+            File(it.path).exists()
+        }.map{it.path}
+        recentFileDAO.deleteNotIn(newFileList)
+        recentFileDAO.deleteOutdated()
+    }
 
     suspend fun refreshRecentFiles()=repository.refreshMostImportantDirs()
 

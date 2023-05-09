@@ -86,6 +86,7 @@ private val mimeTypeIconMap = mapOf(
     "application/vnd.ms-excel.template.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
     "application/vnd.ms-excel.addin.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
     "application/vnd.ms-excel.sheet.binary.macroEnabled.12" to (Icons.Filled.TableView  to "excel document"),
+    //images
 
 
     // Other

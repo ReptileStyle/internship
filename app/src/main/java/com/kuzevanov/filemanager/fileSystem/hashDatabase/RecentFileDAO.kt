@@ -12,6 +12,13 @@ interface RecentFileDAO {
     @Query("SELECT * FROM recent")
     fun getAllRecentFlow(): Flow<List<RecentFile>>
 
+    @Query("SELECT * FROM recent")
+    fun getAllRecent(): List<RecentFile>
+
+    @Query("DELETE FROM recent WHERE path NOT IN (:paths)")
+    fun deleteNotIn(paths: List<String>)
+
     @Query("DELETE FROM recent WHERE date NOT IN (SELECT date FROM recent ORDER BY date DESC LIMIT 100);")
     fun deleteOutdated()
+
 }

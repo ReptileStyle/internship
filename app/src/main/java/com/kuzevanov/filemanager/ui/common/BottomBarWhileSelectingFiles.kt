@@ -4,14 +4,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,12 +31,21 @@ fun BottomBarWhileSelectingFiles(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colors.background)
-                .height(50.dp), horizontalArrangement = Arrangement.Center
+                .height(50.dp),
+            horizontalArrangement = Arrangement.Center,
+
         ) {
             IconButton(onClick = { onEvent(BottomBarWhileSelectingFilesEvent.OnShareFiles) }) {
                 Icon(
                     imageVector = Icons.Filled.Share,
                     contentDescription = "Share selected files"
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { onEvent(BottomBarWhileSelectingFilesEvent.OnDeleteFiles) }) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Delete selected files"
                 )
             }
         }
