@@ -4,9 +4,9 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.MD5
-import com.kuzevanov.filemanager.fileSystem.model.Hashcode
+import com.kuzevanov.filemanager.domain.fileSystem.model.Hashcode
 import java.io.File
 
 class LocalFileSystemEntry(

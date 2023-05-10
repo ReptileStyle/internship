@@ -1,6 +1,6 @@
 package com.kuzevanov.filemanager.ui.screens.home
 
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 
 data class HomeScreenState(
     val totalInternalSpace:Long = -1L,

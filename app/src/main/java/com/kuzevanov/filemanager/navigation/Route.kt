@@ -1,6 +1,6 @@
 package com.kuzevanov.filemanager.navigation
 
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 
 object Route {
     fun directory(location: String? = null): String {

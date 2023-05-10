@@ -1,4 +1,4 @@
-package com.kuzevanov.filemanager.fileSystem.model
+package com.kuzevanov.filemanager.domain.fileSystem.model
 
 import android.os.Parcelable
 import androidx.room.Entity

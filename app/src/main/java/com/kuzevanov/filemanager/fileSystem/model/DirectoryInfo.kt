@@ -1,7 +1,7 @@
 package com.kuzevanov.filemanager.fileSystem.model
 
 
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 import java.io.IOException
 
 

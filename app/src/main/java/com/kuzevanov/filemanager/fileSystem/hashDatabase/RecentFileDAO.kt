@@ -1,7 +1,7 @@
 package com.kuzevanov.filemanager.fileSystem.hashDatabase
 
 import androidx.room.*
-import com.kuzevanov.filemanager.fileSystem.model.RecentFile
+import com.kuzevanov.filemanager.domain.fileSystem.model.RecentFile
 import kotlinx.coroutines.flow.Flow
 
 @Dao

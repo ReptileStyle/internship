@@ -5,12 +5,12 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import com.kuzevanov.filemanager.fileSystem.FileSystem
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystem
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.HashcodeRepository
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.utils.MediaFinderHelper
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.RecentFileDAO
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject

@@ -1,9 +1,9 @@
 package com.kuzevanov.filemanager.fileSystem.model
 
 import android.webkit.MimeTypeMap
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 
-data class DirectoryEntry(val fileSystemEntry: FileSystemEntry, val name: String = fileSystemEntry.name,val directoryInfo: DirectoryInfo) {
+data class DirectoryEntry(val fileSystemEntry: FileSystemEntry, val name: String = fileSystemEntry.name, val directoryInfo: DirectoryInfo) {
     val extension = fileSystemEntry.extension
     val path = fileSystemEntry.path
     val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)

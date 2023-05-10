@@ -1,6 +1,6 @@
-package com.kuzevanov.filemanager.fileSystem
+package com.kuzevanov.filemanager.domain.fileSystem
 
-import com.kuzevanov.filemanager.fileSystem.model.Hashcode
+import com.kuzevanov.filemanager.domain.fileSystem.model.Hashcode
 
 abstract class FileSystemEntry {
     abstract val fileSystem: FileSystem
@@ -19,7 +19,7 @@ abstract class FileSystemEntry {
     abstract fun delete(recursive: Boolean = false): Boolean
     abstract fun listFiles(): List<FileSystemEntry>?
     abstract fun getParent(): FileSystemEntry?
-    abstract fun getHashcode():Hashcode
+    abstract fun getHashcode(): Hashcode
 
     abstract fun open()
 

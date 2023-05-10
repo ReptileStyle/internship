@@ -1,4 +1,4 @@
-package com.kuzevanov.filemanager.fileSystem.model
+package com.kuzevanov.filemanager.domain.fileSystem.model
 
 sealed class SpecialFolderTypes {
     object Images : SpecialFolderTypes()
@@ -24,7 +24,7 @@ sealed class SpecialFolderTypes {
     }
 
     companion object {
-        fun getTypeFromInt(number: Int):SpecialFolderTypes {
+        fun getTypeFromInt(number: Int): SpecialFolderTypes {
             return when (number) {
                 0 -> AddNew
                 1 -> Apps

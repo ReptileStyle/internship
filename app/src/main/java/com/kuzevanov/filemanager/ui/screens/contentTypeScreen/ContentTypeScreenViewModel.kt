@@ -1,6 +1,5 @@
 package com.kuzevanov.filemanager.ui.screens.contentTypeScreen
 
-import android.content.ContentResolver
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,7 +7,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.kuzevanov.filemanager.core.UiEvent
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component.model.DataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -69,7 +68,7 @@ class ContentTypeScreenViewModel @Inject constructor(
                         size = file.length(),
                         createdAt = file.lastModified()
                     )
-                }
+                }.sortedBy { -it.createdAt }
             )
             state = state.copy(isRefreshing = false)
         }

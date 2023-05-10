@@ -18,8 +18,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.kuzevanov.filemanager.R
 import com.kuzevanov.filemanager.ui.screens.home.HomeScreenEvent
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import kotlin.math.roundToInt
+import com.kuzevanov.filemanager.ui.screens.home.component.model.ResourceTile
 
 @Composable
 fun UserCommonDataTypeTiles(

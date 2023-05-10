@@ -12,7 +12,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreen
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.ContentTypeScreenViewModel
 import com.kuzevanov.filemanager.ui.screens.directory.DirectoryScreen

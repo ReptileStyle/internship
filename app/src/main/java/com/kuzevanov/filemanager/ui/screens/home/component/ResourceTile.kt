@@ -13,24 +13,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.common.RoundedCornerButton
 import com.kuzevanov.filemanager.ui.common.dashBorder
 import com.kuzevanov.filemanager.ui.extensions.applyIf
-import com.kuzevanov.filemanager.ui.theme.Shapes
+import com.kuzevanov.filemanager.ui.screens.home.component.model.ResourceTile
 
-data class ResourceTile(
-    val title:String,
-    val icon:ImageVector,
-    val iconTint: Color,
-    val type:SpecialFolderTypes,
-    val iconTintAlpha:Float = 1.0f,
-    val backgroundShape:Shape = Shapes.medium,
-)
+
 
 @Composable
 fun ResourceTile(

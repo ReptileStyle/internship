@@ -8,10 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuzevanov.filemanager.core.UiEvent
-import com.kuzevanov.filemanager.fileSystem.FileSystemEntry
+import com.kuzevanov.filemanager.domain.fileSystem.FileSystemEntry
 import com.kuzevanov.filemanager.fileSystem.LocalFileSystem.LocalFileSystem
 import com.kuzevanov.filemanager.navigation.Route
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.common.model.BottomBarWhileSelectingFilesEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -87,24 +87,27 @@ class HomeScreenViewModel @Inject constructor(
             }
             SpecialFolderTypes.Videos->{
 //                Log.d(TAG,fileSystem.getAllByType(type).toString())
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.Music->{
 //                Log.d(TAG,fileSystem.getAllByType(type).toString())
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.Apps->{
-
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.Zip->{
-
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.Docs->{
-
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.Downloads->{
 //                Log.d(TAG,fileSystem.getAllByType(type).toString())
+                sendUiEventMessage("Not implemented yet")
             }
             SpecialFolderTypes.AddNew->{
-
+                sendUiEventMessage("Not implemented yet")
             }
         }
     }
@@ -185,9 +188,13 @@ class HomeScreenViewModel @Inject constructor(
             fileSystem.dropOutdatedRecentFiles()
         }
         if(failedToDeleteList.isNotEmpty()) {
-            viewModelScope.launch {
-                _uiEvent.send(UiEvent.Message("failed: ${failedToDeleteList.joinToString(", ")}"))
-            }
+            sendUiEventMessage("failed: ${failedToDeleteList.joinToString(", ")}")
+        }
+    }
+
+    private fun sendUiEventMessage(message:String){
+        viewModelScope.launch {
+            _uiEvent.send(UiEvent.Message(message))
         }
     }
 

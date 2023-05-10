@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import com.kuzevanov.filemanager.core.UiEvent
-import com.kuzevanov.filemanager.fileSystem.model.SpecialFolderTypes
+import com.kuzevanov.filemanager.domain.fileSystem.model.SpecialFolderTypes
 import com.kuzevanov.filemanager.ui.screens.contentTypeScreen.component.ContentTypeImagesList
 import kotlinx.coroutines.flow.Flow
 

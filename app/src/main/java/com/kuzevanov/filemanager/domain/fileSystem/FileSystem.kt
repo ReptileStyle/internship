@@ -1,4 +1,4 @@
-package com.kuzevanov.filemanager.fileSystem
+package com.kuzevanov.filemanager.domain.fileSystem
 
 abstract class FileSystem {
     var loaded: Boolean = false

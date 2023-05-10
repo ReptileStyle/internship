@@ -1,7 +1,7 @@
 package com.kuzevanov.filemanager.fileSystem.hashDatabase
 
 import androidx.room.*
-import com.kuzevanov.filemanager.fileSystem.model.Hashcode
+import com.kuzevanov.filemanager.domain.fileSystem.model.Hashcode
 
 @Dao
 interface HashcodeDAO {

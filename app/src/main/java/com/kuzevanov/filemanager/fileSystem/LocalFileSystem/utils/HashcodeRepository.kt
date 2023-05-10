@@ -8,8 +8,8 @@ import android.os.Environment
 import android.util.Log
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.HashcodeDAO
 import com.kuzevanov.filemanager.fileSystem.hashDatabase.RecentFileDAO
-import com.kuzevanov.filemanager.fileSystem.model.Hashcode
-import com.kuzevanov.filemanager.fileSystem.model.RecentFile
+import com.kuzevanov.filemanager.domain.fileSystem.model.Hashcode
+import com.kuzevanov.filemanager.domain.fileSystem.model.RecentFile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
